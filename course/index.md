@@ -11,12 +11,12 @@ This vizualization provides a quick insight about all the student courses, showi
 
 </div>
 <script type="text/javascript">
-	SViz.showCourses("/json-examples/student-courses.json", "#vizualization", 500, 200);
+	SViz.showCourses("{{site.baseurl}}/json-examples/student-courses.json", "#vizualization", 500, 200);
 </script>
 
 <h5 style="margin-top: 20px">Invocation Example</h5>
 {% highlight javascript %}
-SViz.showCourses("/json-examples/student-courses.json", "#vizualization", 500, 200);
+SViz.showCourses("student-courses.json", "#vizualization", 500, 200);
 {% endhighlight %}
 
 <h5 style="margin-top: 20px">JSON Example</h5>
