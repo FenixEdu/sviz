@@ -1,0 +1,35 @@
+{
+	"total-credits": 160,
+	"max-credits": 285,
+	"years": [
+		{
+			"year": 1,
+			"credits": 145,
+			"completed-courses": [
+				{ "name": "Introduction to Programming", "final-grade": 18 },
+				{ "name": "Digital Systems", "final-grade": 15 }
+			]
+		}, {
+			"year": 2,
+			"credits": 65,
+			"completed-courses": [
+				{ "name": "Object-Oriented Programming", "final-grade": 18 },
+				{ "name": "Embedded Systems", "final-grade": 15 }
+			]
+		}, {
+			"year": 3,
+			"credits": 76,
+			"completed-courses": [
+				{ "name": "Software Engineering", "final-grade": 18 },
+				{ "name": "Operating Systems", "final-grade": 15 }
+			]
+		}, {
+			"year": 4,
+			"credits": 12,
+			"completed-courses": [
+				{ "name": "Software Architecture", "final-grade": 18 },
+				{ "name": "Enterprise Information Systems", "final-grade": 15 }
+			]
+		}
+	]
+}
