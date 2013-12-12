@@ -7,7 +7,7 @@ layout: default
 
 <div id="visualization"></div>
 <script> 
-  SViz.{{ page.call }}("{{site.baseurl}}/visualizations/{{page.path}}/example.json", "#visualization", 500, 200);
+  SViz.{{ page.call }}("{{site.baseurl}}/visualizations/{{page.path}}/example.json", "#visualization" {{page.call_args}});
 </script>
 
 <h4 style="margin-top: 30px">Invocation Example</h4>

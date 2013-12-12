@@ -4,7 +4,8 @@ path: statistics
 title: Statistics
 description: A text-based presentation of useful statistical values.
 call: showStatistics
-sample_call: SViz.showStatistics("data.json", "#visualization", 500, 200);
+call_args: ""
+sample_call: SViz.showStatistics("data.json", "#visualization");
 ---
 
 {{site.static_files}}

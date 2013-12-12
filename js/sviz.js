@@ -3,7 +3,7 @@
 	var SViz = {};
 	window.SViz = SViz;
 
-	var statisticsVisualization = function(jsonEndpoint, selector, width, height, opts) {
+	var statisticsVisualization = function(jsonEndpoint, selector, opts) {
 		d3.json(jsonEndpoint, function(data) {
 		  d3.select(selector).append("h4").text("Statistic stuff");
 		  d3.select(selector).append("p").text("Total Students: " + data.students.length);
@@ -98,8 +98,8 @@
 
 
 	//API EXPORTS
-	SViz.showStatistics =  function(jsonEndpoint, selector, width, height, opts) {
-		statisticsVisualization(jsonEndpoint, selector, width, height, opts);
+	SViz.showStatistics =  function(jsonEndpoint, selector, opts) {
+		statisticsVisualization(jsonEndpoint, selector, opts);
 	};
 
 	SViz.showCourses =  function(jsonEndpoint, selector, width, height, opts) {
