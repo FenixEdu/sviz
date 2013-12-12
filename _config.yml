@@ -3,3 +3,13 @@ markdown: redcarpet
 pygments: true
 
 baseurl: /sviz
+
+visualizations:
+  - name: Progress
+    path: progress
+  - name: Course Donuts
+    path: course
+  - name: Evaluation
+    path: evaluation
+  - name: Statistics
+    path: statistics

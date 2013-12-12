@@ -5,9 +5,9 @@ title: FenixEdu™ SViz - Visualizing student information
 
 <div class="jumbotron">
 	<h2>Welcome to SViz</h2>
-	<p>A project that focus on providing visualizations to condensate and resume student information.</p>
+	<p>A project with focus on providing visualizations to present and resume students' grades and other curricular information.</p>
 
-	<p class="help-block">Feel free to explore in the menu on the right.</p>
+	<p class="help-block">Feel free to explore the menu on the right.</p>
 </div>
 
 <div class="row">
@@ -29,7 +29,7 @@ title: FenixEdu™ SViz - Visualizing student information
 		<div class="well">
 			<h1 class="text-center"><i class="glyphicon glyphicon-eye-open"></i></h1>
 			<h4 class="text-center">Improved Perception</h4>
-			<p class="text-center">SViz visualizations improved the information that students perceive about their curricular life.</p>
+			<p class="text-center">SViz visualizations improves the information students perceive about their curricular life.</p>
 		</div>
 	</div>
 </div>

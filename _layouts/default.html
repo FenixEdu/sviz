@@ -11,6 +11,7 @@
 
   <!-- syntax highlighting CSS -->
   <link rel="stylesheet" href="{{site.baseurl}}/css/syntax.css">
+  <link rel="stylesheet" href="{{site.baseurl}}/css/main.css">
 
   <script type="text/javascript" src="{{site.baseurl}}/js/jquery.min.js"></script>
   <script type="text/javascript" src="{{site.baseurl}}/js/bootstrap.min.js"></script>
@@ -32,7 +33,7 @@
               <span class="icon-bar"></span>
               <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="/">{{ site.name }}</a>
+            <a class="navbar-brand" href="/">{{ site.name }} - Visualizing Student information </a>
           </div>
         </nav>
       </div>
@@ -42,10 +43,13 @@
         {{ content }}
       </div>
       <div class="col-lg-3">
-        <div class="list-group">
-          <a class="list-group-item" href="{{site.baseurl}}/progress">Progress</a>
-          <a class="list-group-item" href="{{site.baseurl}}/evaluation">Evaluation</a>
-          <a class="list-group-item" href="{{site.baseurl}}/course">Course</a>
+        <div class="panel panel-default">
+          <div class="panel-heading"><a href="{{site.baseurl}}/visualizations"><h4 style="margin: 5px 0px">Visualizations</h4></a></div>
+          <div class="list-group">
+            {% for item in site.visualizations %}
+            <a class="list-group-item" href="{{site.baseurl}}/visualizations/{{ item.path }}">{{ item.name }}</a>
+            {% endfor %}
+          </div>
         </div>
       </div>
     </div>

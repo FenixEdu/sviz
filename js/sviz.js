@@ -3,6 +3,18 @@
 	var SViz = {};
 	window.SViz = SViz;
 
+	var statisticsVisualization = function(jsonEndpoint, selector, width, height, opts) {
+		d3.json(jsonEndpoint, function(data) {
+		  d3.select(selector).append("h4").text("Statistic stuff");
+		  d3.select(selector).append("p").text("Total Students: " + data.students.length);
+		  var approvedStudents = data.students.filter(function(el, i, arr) {return (el.grade >= data.minRequiredGrade);}).length;
+		  d3.select(selector).append("p").text("Approved: " + d3.round(approvedStudents*100/data.students.length) + "%  ("+approvedStudents+" students)");
+		  d3.select(selector).append("p").text("Mean: " + d3.round( d3.mean(data.students, function(d) {return d.grade}), 2 ));
+		  d3.select(selector).append("p").text("Min & Max: " + d3.extent(data.students, function(d) {return d.grade}));
+		  d3.select(selector).append("p").text("Median: " + d3.median(data.students, function(d) {return d.grade}));
+  		});
+	};
+
 	var multipleDonutsVisualization = function(jsonEndpoint, selector, width, height, opts) {
 		var defaultRadius = 50;
 		var defaultInnerRaidus = 40;
@@ -86,6 +98,10 @@
 
 
 	//API EXPORTS
+	SViz.showStatistics =  function(jsonEndpoint, selector, width, height, opts) {
+		statisticsVisualization(jsonEndpoint, selector, width, height, opts);
+	};
+
 	SViz.showCourses =  function(jsonEndpoint, selector, width, height, opts) {
 		multipleDonutsVisualization(jsonEndpoint, selector, width, height, opts);
 	};

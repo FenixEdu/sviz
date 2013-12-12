@@ -1,0 +1,17 @@
+---
+layout: default
+---
+<h3>{{ page.title }}</h3>
+
+<p class="help-block" style="margin-bottom: 20px">{{page.description}}</p>
+
+<div id="visualization"></div>
+<script> 
+  SViz.{{ page.call }}("{{site.baseurl}}/visualizations/{{page.path}}/example.json", "#visualization", 500, 200);
+</script>
+
+<h4 style="margin-top: 30px">Invocation Example</h4>
+{% highlight javascript %}{{page.sample_call}}{% endhighlight %}
+
+<h4 style="margin-top: 30px">JSON Example</h4>
+{{ content }}
