@@ -16,9 +16,12 @@
   <script type="text/javascript" src="{{site.baseurl}}/js/jquery.min.js"></script>
   <script type="text/javascript" src="{{site.baseurl}}/js/bootstrap.min.js"></script>
   <script type="text/javascript" src="{{site.baseurl}}/js/d3.min.js"></script>
+  <script type="text/javascript" src="{{site.baseurl}}/js/qtip.min.js"></script>
+  <script type="text/javascript" src="{{site.baseurl}}/js/i18next.min.js"></script>
 
   <!-- SViz inclusions -->
-  <link rel="stylesheet" type="text/css" href="/css/sviz.css">
+  <link rel="stylesheet" href="{{site.baseurl}}/css/sviz.css">
+  <link rel="stylesheet" href="{{site.baseurl}}/css/main.css">
   <script type="text/javascript" src="{{site.baseurl}}/js/sviz.js"></script>
 </head>
 <body>
@@ -51,6 +54,11 @@
             {% endfor %}
           </div>
         </div>
+
+        <div class="list-group">
+          <a class="list-group-item" href="{{site.baseurl}}/localization">Internationalization</a>
+        </div>
+
       </div>
     </div>
   </div>

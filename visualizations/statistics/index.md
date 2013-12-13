@@ -5,7 +5,7 @@ title: Statistics
 description: A text-based presentation of useful statistical values.
 call: showStatistics
 call_args: ""
-sample_call: SViz.showStatistics("data.json", "#visualization");
+sample_call: SViz.loadViz("showStatistics", "data.json", "#visualization");
 ---
 
 These are the required fields for this visualization to work. More fields can be added (for joint use with other visualizations), as long as this structure remains unchanged.
