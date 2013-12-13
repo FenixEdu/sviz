@@ -15,3 +15,17 @@ layout: default
 
 <h4 style="margin-top: 30px">JSON Example</h4>
 {{ content }}
+
+<h4 style="margin-top: 30px">Optional Parameters</h4>
+<table class="table table-bordered table-condensed">
+  <thead>
+    <th>Name</th> <th width="50%">Default Value</th> <th>Description</th>
+  </thead>
+  <tbody>
+  {% for item in page.opts %}
+     <tr>
+       <td>{{item[0]}}</td> <td>{{item[1]}}</td> <td>{{item[2]}}</td>
+     </tr>
+  </tbody>
+  {% endfor %}
+</table>
