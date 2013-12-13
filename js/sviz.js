@@ -2,7 +2,7 @@
 	// create the SViz object to export and inject it to the global environment.
 	var SViz = {};
 	window.SViz = SViz;
-	var lang = "pt";
+	var lang = "en";
 
 	var statisticsVisualization = function(data, selector, opts) {
 	  d3.select(selector).append("h4").text("Statistic stuff");
@@ -21,7 +21,7 @@
 	var multipleDonutsVisualization = function(data, selector, opts) {
 		var ratio = 3/4;
 		var defaultRadius = 50;
-		var defaultInnerRaidus = 20;
+		var defaultInnerRaidus = 30;
 		var defaultNegativeGradesColor = "#F13939";
 		var defaultPositiveGradesColor = "#96C472";
 
@@ -53,7 +53,7 @@
 		  });
 
 		  var legend = d3.select(selector).append("svg")
-		      .attr("class", "legend")
+		      .attr("class", "legend-text")
 		      .attr("width", 150)
 		      .attr("height", radius * 2)
 		    .selectAll("g")
@@ -67,7 +67,6 @@
 		      .style("fill", color);
 
 		  legend.append("text")
-		  	  .attr("class", "i18n")
 		      .attr("x", 16)
 		      .attr("y", 6)
 		      .attr("dy", ".35em")
@@ -90,30 +89,35 @@
 		      .attr("d", arc)
 		      .style("fill", function(d) { return color(d.data.name); });
 
-  		  triggerI18N();
-  		  triggerTooltips();
-	};
+		  svg.append("text")
+        	  .attr("dy", ".35em")
+        	  .attr("class", "donut-center-text")
+        	  .style("text-anchor", "middle")
+        	  .text(function(d) { return d.acronym; });
 
-	var triggerTooltips = function() {
-		$(".tip").qtip({
+   		  $(".tip").qtip({
 			style: "qtip-tipsy",
 			position: {
             	target: 'mouse',
             	adjust: { x: 10, y: 10 }
          	}
-        });
-	}
+       	  });
 
-	//I18N utilcall
+		  visualizationCompleted();
+	};
+
+	//Triggers I18N translations
 	var triggerI18N = function() {
 		i18n.setLng(lang, function() {
 			i18n.init(function(t) {
-			  $(".i18n").i18n();
+			  $("[data-i18n]").i18n();
 			});
 		});
 	};
 	
-	//EVENT HANDLERS
+	var visualizationCompleted = function() {
+		triggerI18N();
+	}
 
 	//VIZUALIZATIONS TO EXPORT
 	var visualizations = {
@@ -128,9 +132,11 @@
 		}
 	};
 
-	SViz.init = function(lang) {
-		lang = lang;
-		triggerI18N();
+	SViz.init = function(params) {
+		if(params && params.lang) {
+			lang = params.lang;
+			triggerI18N();
+		}
 	};
 
 	SViz.loadViz = function(vizName, data, selector, opts) {

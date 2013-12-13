@@ -3,7 +3,10 @@
   color: black;
 }
 
-
+.donut-center-text {
+  color: #000;
+  font-weight: bold;
+}
 
 
 
@@ -135,9 +138,6 @@
     color: #111;
   }
 
-
-
-
 /* Tipsy style */
 .qtip-tipsy {
   background: black;
@@ -153,7 +153,7 @@
   text-shadow: 0 1px black;
 }
 
-  .qtip-tipsy .qtip-titlebar{
+  .qtip-tipsy .qtip-titlebar {
     padding: 6px 35px 0 10px;
     background-color: transparent;
   }
