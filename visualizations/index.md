@@ -10,7 +10,7 @@ This visualization provides a quick insight about all the student courses, showi
 
 <div class="row">
   {% for item in site.visualizations %}
-  <a href="{{ site.baseurl }}{{ item.path }}">
+  <a href="{{ site.baseurl }}/visualizations/{{ item.path }}">
     <div class="col-sm-6 col-md-3">
       <div class="thumbnail">
         <div class="caption" style="padding: 0px 9px">
