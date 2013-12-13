@@ -16,6 +16,7 @@ layout: default
 <h4 style="margin-top: 30px">JSON Example</h4>
 {{ content }}
 
+{% if page.opts != null %}
 <h4 style="margin-top: 30px">Optional Parameters</h4>
 <table class="table table-bordered table-condensed">
   <thead>
@@ -29,3 +30,4 @@ layout: default
   </tbody>
   {% endfor %}
 </table>
+{% endif %}
