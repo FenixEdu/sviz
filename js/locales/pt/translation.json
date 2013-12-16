@@ -1,0 +1,11 @@
+{
+  "statistics": {
+    "title": "Medidas Estatísticas",
+    "total-students": "Número de Alunos: ",
+    "approved": "Aprovados: ",
+    "mean": "Média: ",
+    "extent": "Mín & Max: ",
+    "median": "Mediana: ",
+    "students": "alunos"
+  }
+}

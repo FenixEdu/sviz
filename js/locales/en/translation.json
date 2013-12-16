@@ -1,0 +1,15 @@
+{
+  "statistics": {
+    "title": "Statistic Measures",
+    "total-students": "Total Students: ",
+    "approved: ": "Approved: ",
+    "mean": "Mean: ",
+    "extent": "Min & Max: ",
+    "median": "Median: ",
+    "students": "students"
+  },
+  "donuts": {
+    "negative-grades": "Negative Grades",
+    "positive-grades": "Positive Grades"
+  }
+}

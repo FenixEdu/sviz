@@ -1,24 +1,31 @@
 (function(window, $, i18n) {
+
 	// create the SViz object to export and inject it to the global environment.
 	var SViz = {};
 	window.SViz = SViz;
-	var lang = "en";
 
-	var statisticsVisualization = function(data, selector, opts) {
-	  d3.select(selector).append("h4").text("Statistic stuff");
-	  d3.select(selector).append("p").text("Total Students: " + data.students.length);
-	  var approvedStudents = data.students.filter(function(el, i, arr) {return (el.grade >= data.minRequiredGrade);}).length;
-	  d3.select(selector).append("p").text("Approved: " + d3.round(approvedStudents*100/data.students.length) + "%  ("+approvedStudents+" students)");
-	  d3.select(selector).append("p").text("Mean: " + d3.round( d3.mean(data.students, function(d) {return d.grade}), 2 ));
-	  d3.select(selector).append("p").text("Min & Max: " + d3.extent(data.students, function(d) {return d.grade}));
-	  d3.select(selector).append("p").text("Median: " + d3.median(data.students, function(d) {return d.grade}));
-	};
+	var lang = 'en';
+	i18n.init({ fallbackLng: lang , lng: lang, resGetPath: '/js/locales/__lng__/__ns__.json' , getAsync: false, debug: true });
 
 	var error = function(msg) {
 		console.log(msg);
 	}
 
+
+	var statisticsVisualization = function(data, selector, opts) {
+		var lng = i18n.t("statistics", { returnObjectTrees: true });
+	 	d3.select(selector).append("h4").text(lng["title"]);
+	  	d3.select(selector).append("p").text( lng["total-students"] + data.students.length);
+	  	var approvedStudents = d3.sum(data.students, function(el) {return (el.grade >= data.minRequiredGrade);});
+	  	d3.select(selector).append("p").text( lng["approved"]+ d3.round(approvedStudents*100/data.students.length) + "%  ("+approvedStudents+" "+i18n.t("students")+")");
+	  	d3.select(selector).append("p").text( lng["mean"]	+ d3.round( d3.mean(data.students, function(d) {return d.grade}), 2 ));
+	  	d3.select(selector).append("p").text( lng["extent"]	+ d3.extent(data.students, function(d) {return d.grade}));
+	  	d3.select(selector).append("p").text( lng["median"]	+ d3.median(data.students, function(d) {return d.grade}));
+	};
+
 	var multipleDonutsVisualization = function(data, selector, opts) {
+		var lng = i18n.t("donuts", { returnObjectTrees: true });
+
 		var ratio = 3/4;
 		var defaultRadius = 50;
 		var defaultInnerRaidus = 30;
@@ -70,7 +77,7 @@
 		      .attr("x", 16)
 		      .attr("y", 6)
 		      .attr("dy", ".35em")
-		      .attr("data-i18n", function(d) { return d; });
+		      .text( function(d) { return lng[d]; });
 
 		  var svg = d3.select(selector).selectAll(".small-pie")
 		      .data(data)
@@ -102,24 +109,10 @@
             	adjust: { x: 10, y: 10 }
          	}
        	  });
-
-		  visualizationCompleted();
 	};
 
-	//Triggers I18N translations
-	var triggerI18N = function() {
-		i18n.setLng(lang, function() {
-			i18n.init(function(t) {
-			  $("[data-i18n]").i18n();
-			});
-		});
-	};
-	
-	var visualizationCompleted = function() {
-		triggerI18N();
-	}
 
-	//VIZUALIZATIONS TO EXPORT
+	//VISUALIZATIONS TO EXPORT
 	var visualizations = {
 		showStatistics : function(data, selector, opts) {
 			statisticsVisualization(data, selector, opts);
@@ -133,9 +126,9 @@
 	};
 
 	SViz.init = function(params) {
+		debugger;
 		if(params && params.lang) {
-			lang = params.lang;
-			triggerI18N();
+			i18n.setLng(lang, function(t) { /* loading done */ });
 		}
 	};
 
