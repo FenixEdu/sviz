@@ -3,9 +3,14 @@
     "title": "Medidas Estatísticas",
     "total-students": "Número de Alunos: ",
     "approved": "Aprovados: ",
+    "no-attends": "Não Avaliados: ",
     "mean": "Média: ",
     "extent": "Mín & Max: ",
     "median": "Mediana: ",
     "students": "alunos"
+  },
+  "donuts": {
+    "negative-grades": "Notas Negativas",
+    "positive-grades": "Notas Positivas"
   }
 }

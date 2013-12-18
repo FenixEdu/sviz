@@ -2,7 +2,8 @@
   "statistics": {
     "title": "Statistic Measures",
     "total-students": "Total Students: ",
-    "approved: ": "Approved: ",
+    "approved": "Approved: ",
+    "no-attends": "Did not Attend: ",
     "mean": "Mean: ",
     "extent": "Min & Max: ",
     "median": "Median: ",

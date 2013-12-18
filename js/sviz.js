@@ -11,16 +11,29 @@
 		console.log(msg);
 	}
 
+	var valuesInsideDomainOnly = function(data) {
+		return function(d) {
+			if(d.grade>=data.minGrade && d.grade<=data.maxGrade) {
+				return d.grade;
+			}
+		};
+	};
 
 	var statisticsVisualization = function(data, selector, opts) {
 		var lng = i18n.t("statistics", { returnObjectTrees: true });
 	 	d3.select(selector).append("h4").text(lng["title"]);
-	  	d3.select(selector).append("p").text( lng["total-students"] + data.students.length);
-	  	var approvedStudents = d3.sum(data.students, function(el) {return (el.grade >= data.minRequiredGrade);});
-	  	d3.select(selector).append("p").text( lng["approved"]+ d3.round(approvedStudents*100/data.students.length) + "%  ("+approvedStudents+" "+i18n.t("students")+")");
-	  	d3.select(selector).append("p").text( lng["mean"]	+ d3.round( d3.mean(data.students, function(d) {return d.grade}), 2 ));
-	  	d3.select(selector).append("p").text( lng["extent"]	+ d3.extent(data.students, function(d) {return d.grade}));
-	  	d3.select(selector).append("p").text( lng["median"]	+ d3.median(data.students, function(d) {return d.grade}));
+	 	var totalStudents = data.students.length;
+	 	var approvedStudents = d3.sum(data.students, function(el) {return (el.grade >= data.minRequiredGrade);});
+	 	var noAttendStudents = d3.sum(data.students, function(el) {return (el.grade === data.notAttended);});
+	  	d3.select(selector).append("p").text( lng["total-students"] + totalStudents);
+	  	d3.select(selector).append("p").text( lng["approved"]	+ d3.round(approvedStudents*100/totalStudents, 1) + "%  ("+approvedStudents+" "+i18n.t("students")+")");
+	  	if(data.notAttended) {
+	  		d3.select(selector).append("p")
+	  			.text( lng["no-attends"] + d3.round(noAttendStudents*100/totalStudents, 1) + "%  ("+noAttendStudents+" "+i18n.t("students")+")");
+	  	}
+	  	d3.select(selector).append("p").text( lng["mean"]	+ d3.round(d3.mean(data.students, valuesInsideDomainOnly(data)), 2));
+	  	d3.select(selector).append("p").text( lng["extent"]	+ d3.extent(data.students, valuesInsideDomainOnly(data)));
+	  	d3.select(selector).append("p").text( lng["median"]	+ d3.round(d3.median(data.students, valuesInsideDomainOnly(data)), 2));
 	};
 
 	var multipleDonutsVisualization = function(data, selector, opts) {
