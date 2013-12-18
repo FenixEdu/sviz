@@ -9,7 +9,7 @@ visualizations:
     path: progress
   - name: Course Donuts
     path: course
-  - name: Evaluation
-    path: evaluation
+  - name: Histogram
+    path: histogram
   - name: Statistics
     path: statistics

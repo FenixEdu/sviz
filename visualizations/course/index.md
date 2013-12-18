@@ -3,7 +3,6 @@ layout: visualization
 path: course
 title: Course Donuts
 description: This visualization provides a quick insight about all the student courses, showing him both the percentages of positive and negative grades.
-
 call: showCourses
 call_args: ""
 sample_call: SViz.loadViz("showCourses", "data.json", "#visualization");

@@ -1,14 +1,21 @@
 ---
 layout: visualization
-path: evaluation
-title: Evaluation
-description: A histogram of marks obtained in an evaluation with optional detailed side and table views.
+path: histogram
+title: Histogram
+description: An histogram of marks obtained in an evaluation with optional detailed side and table views.
 call: showHistogram
 call_args: ""
 sample_call: SViz.showHistogram("data.json", "#visualization", 1000, 350);
+opts:
+  - - details
+    - true
+    - show a detailed side chart
+  - - table
+    - true
+    - show a detailed table
 ---
 
-The student 'ID' must be unique and is not limited to numbers. 'selfID' is the ID of the students who is logged in and viewing the chart.
+The student 'ID' must be unique and is not limited to numbers. 'selfID' is the ID of the student who is logged in and viewing the chart.
 {% highlight json %}
 { "minGrade": 0,
   "maxGrade": 20,

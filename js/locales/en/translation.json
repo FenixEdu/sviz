@@ -9,6 +9,8 @@
     "median": "Median: ",
     "students": "students"
   },
+  "histogram": {
+  },
   "donuts": {
     "negative-grades": "Negative Grades",
     "positive-grades": "Positive Grades"
