@@ -6,9 +6,16 @@ description: A text-based presentation of useful statistical values.
 call: showStatistics
 call_args: ""
 sample_call: SViz.loadViz("showStatistics", "data.json", "#visualization");
+opts:
+  - - "[measure]"
+    - "true for all measures [total, approved, noattend, extent, mean, median]"
+    - true of false to display (or not) each measure
+  - - help
+    - true
+    - displays an help tooltip explaining each measure
 ---
 
-These are the required fields for this visualization to work. More fields can be added (for joint use with other visualizations), as long as this structure remains unchanged.
+These are the required fields for this visualization to work. More fields can be added (for joint use with other visualizations), as long as this structure remains unchanged. If "notAttended" is not included, the number of not evaluated students will not be displayed.
 {% highlight json %}
 { "minGrade": 0,
   "maxGrade": 20,
