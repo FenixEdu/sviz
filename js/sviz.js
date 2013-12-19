@@ -121,27 +121,35 @@
 
 		  y.domain([0, d3.max(values, function(d) { return d.y; })])
 
-		  /* min Grade Rectangle */
+		/* min Grade Rectangle */
+		if(data.minRequiredGrade && opts.showMinGrade!=false) {
 		  svg.append("g")
-		     .attr("render-order", -1) //isto nao funciona
 		     .append("rect")
 		        .attr("class", "minRect")
 		        .attr("x", 0)
 		        .attr("width", x(data.minRequiredGrade))
 		        .attr("height", height);
+		}
 
-		 /* bars */
+		/* bars */
+		var hilightStudent = function(data) {
+			return function(d) {
+				if(data.selfID && opts.hilightStudent!=false) {
+				        for(var i in d) {
+				          if(!(i in {'x':1, 'dx':1, 'y':1}))
+				            if(d[i].ID == data.selfID){
+				              return "bar you";
+				            }
+				        }
+				}
+			        return "bar";
+			}
+		}
+
 		  var bar = svg.selectAll(".bar")
 		      .data(values)
 		    .enter().append("g")
-		      .attr("class", function(d) {
-		        for(var i in d) {
-		          if(!(i in {'x':1, 'dx':1, 'y':1}))
-		            if(d[i].ID == data.selfID){
-		              return "bar you";
-		            }
-		        }
-		        return "bar";})
+		      .attr("class",hilightStudent(data))
 		      .attr("transform", function(d) { return "translate(" + x(d.x+0.5) + "," + y(d.y) + ")"; })
 		      .on('mouseover', function (d) {
 		        tip.show(d);
@@ -164,24 +172,8 @@
 		      .attr("text-anchor", "middle")
 		      .text(function(d) { if(d.y!=0) {return d.y;} });
 
-		  /* sticks inside bars */
-		  var gradesHash = d3.nest()
-		    .key(function(d) { return d3.round(d.grade,1); })
-		    .entries(data.students);
-
-		  var stick = svg.selectAll(".stick")
-		      .data(gradesHash)
-		    .enter().append("g")
-		      .attr("class", "stick")
-		      .attr("transform", function(d) { return "translate(" + x(d.key) + ", 0)"; });
-
-		  stick.append("line")
-		        .attr("x1", 0)
-		        .attr("x2", 0)
-		        .attr("y1", height)
-		        .attr("y2", function(d) { return y(d.values.length); });
-
-		  /* min Grade */
+		/* min Grade Line */
+		if(data.minRequiredGrade && opts.showMinGrade!=false) {
 		  svg.append("g")
 		      .attr("class", "line")
 		      .attr("transform", function(d) { return "translate(" + x(data.minRequiredGrade) + ", 0)"; })
@@ -190,6 +182,7 @@
 		        .attr("x2", 0)
 		        .attr("y1", 0)
 		        .attr("y2", height);
+		}
 
 		  /* x Axis */
 		  svg.append("g")
@@ -213,40 +206,44 @@
 		      .attr("y", 6)
 		      .attr("dy", ".71em")
 		      .style("text-anchor", "end")
-		      .text("Frequency");
+		      .text(lng['y-label']);
 
-		  /* Legend */
-		  var legend = svg.append("g")
-		      .attr("class", "legend")
-		      .attr("transform", "translate(0,0)");
+		/* Legend */
+		if(opts.legend!=false) {
+			var legend = svg.append("g")
+			      .attr("class", "legend")
+			      .attr("transform", "translate(0,0)");
 
-		  var l1 = legend.append("g")
-		      .attr("transform", "translate("+(width1-18)+",0)");
-		  l1.append("rect")
-		        .attr("width", 18)
-		        .attr("height", 18)
-		        .style("fill", "purple")
-		  l1.append("text")
-		        .attr("x", -6)
-		        .attr("y", 9)
-		        .attr("dy", ".35em")
-		        .style("text-anchor", "end")
-		        .text("Você está aqui");
-
-		  var l2 = legend.append("g")
-		      .attr("transform", "translate("+(width1-18)+",20)");
-		  l2.append("line")
-		      .attr("x2", 18)
-		      .attr("y1", 9)
-		      .attr("y2", 9)
-		      .attr("class", "line");
-		  l2.append("text")
-		      .attr("x", -6)
-		      .attr("y", 9)
-		      .attr("dy", ".35em")
-		      .style("text-anchor", "end")
-		      .text("Nota mínima");
-
+			var dy=0;
+			if(data.selfID && opts.hilightStudent!=false) {
+				var l = legend.append("g").attr("transform", "translate("+(width1-18)+","+dy+")");
+				l.append("rect")
+				        .attr("width", 18)
+				        .attr("height", 18)
+				        .style("fill", "purple")
+				l.append("text")
+				        .attr("x", -6)
+				        .attr("y", 9)
+				        .attr("dy", ".35em")
+				        .style("text-anchor", "end")
+				        .text(lng['self-id']);
+				dy+=20;
+			}
+			if(data.minRequiredGrade && opts.showMinGrade!=false) {
+				var l = legend.append("g").attr("transform", "translate("+(width1-18)+","+dy+")");
+				l.append("line")
+				      .attr("x2", 18)
+				      .attr("y1", 9)
+				      .attr("y2", 9)
+				      .attr("class", "line");
+				l.append("text")
+				      .attr("x", -6)
+				      .attr("y", 9)
+				      .attr("dy", ".35em")
+				      .style("text-anchor", "end")
+				      .text(lng['min-grade']);
+			}
+		}
 
 		  /** Side Chart **/
 		  var sideChart = frame.append("g").attr("transform", "translate("+(margin.left+width1+xgap)+","+margin.top+")");
@@ -273,14 +270,7 @@
 
 		    // ENTER - Create new elements as needed.
 		    sbar.enter().append("g")
-		      .attr("class", function(d) {
-		        for(var i in d) {
-		          if(!(i in {'x':1, 'dx':1, 'y':1}))
-		            if(d[i].ID == data.selfID){
-		              return "bar you";
-		            }
-		        }
-		        return "bar";})
+		      .attr("class", hilightStudent(data))
 		      .attr("transform", function(d) { return "translate(" + x2(d.x+0.5) + ",0)"; })
 
 		    sbar.append("rect")
@@ -288,14 +278,7 @@
 		      .attr("width", barWidth2 -2);
 
 		    // ENTER + UPDATE
-		    sbar.attr("class", function(d) {
-		        for(var i in d) {
-		          if(!(i in {'x':1, 'dx':1, 'y':1}))
-		            if(d[i].ID == data.selfID){
-		              return "bar you";
-		            }
-		        }
-		        return "bar";})
+		    sbar.attr("class", hilightStudent(data));
 		    sbar.select("rect")
 		      .attr("y", function(d) { return y(d.y); })
 		      .attr("height", function(d) { return height - y(d.y); });

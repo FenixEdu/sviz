@@ -10,6 +10,9 @@
     "students": "students"
   },
   "histogram": {
+    "min-grade": "Minimum grade",
+    "self-id": "You",
+    "y-label": "Frequency"
   },
   "donuts": {
     "negative-grades": "Negative Grades",
