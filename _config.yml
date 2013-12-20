@@ -13,3 +13,7 @@ visualizations:
     path: histogram
   - name: Statistics
     path: statistics
+  - name: BoxPlot
+    path: boxplot
+  - name: Sunburst
+    path: sunburst

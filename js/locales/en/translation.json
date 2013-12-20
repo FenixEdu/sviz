@@ -16,6 +16,7 @@
     "table-columns": {"name": "Name", "grade": "Grade"}
   },
   "donuts": {
+    "not-evaluated-grades": "Not Evaluated",
     "negative-grades": "Negative Grades",
     "positive-grades": "Positive Grades"
   }

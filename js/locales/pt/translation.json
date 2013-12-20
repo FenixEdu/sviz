@@ -16,7 +16,8 @@
     "table-columns": {"name":"Nome", "grade":"Nota"}
   },
   "donuts": {
-    "negative-grades": "Notas Negativas",
-    "positive-grades": "Notas Positivas"
+    "not-evaluated-grades": "Não Avaliados",
+    "negative-grades": "Reprovados",
+    "positive-grades": "Aprovados"
   }
 }
