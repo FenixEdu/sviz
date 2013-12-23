@@ -12,7 +12,8 @@
   "histogram": {
     "min-grade": "Nota mínima",
     "self-id": "Você está aqui",
-    "y-label": "Frequência"
+    "y-label": "Frequência",
+    "table-columns": {"name":"Nome", "grade":"Nota"}
   },
   "donuts": {
     "negative-grades": "Notas Negativas",

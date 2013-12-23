@@ -12,7 +12,8 @@
   "histogram": {
     "min-grade": "Minimum grade",
     "self-id": "You",
-    "y-label": "Frequency"
+    "y-label": "Frequency",
+    "table-columns": {"name": "Name", "grade": "Grade"}
   },
   "donuts": {
     "negative-grades": "Negative Grades",

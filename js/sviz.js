@@ -49,7 +49,7 @@
     			width2 = 250 - xgap/2 - margin.right,
     			height = 260 - margin.top - margin.bottom;
 
-		/* First set of Axes */
+		/* Axes */
 		var x = d3.scale.linear();
 
 		var xAxis = d3.svg.axis()
@@ -63,14 +63,6 @@
 		var yAxis = d3.svg.axis()
     			.scale(y)
     			.orient("left");
-
-		/* Second set of Axes */
-		var x2 = d3.scale.linear();
-
-		var xAxis2 = d3.svg.axis()
-    			.scale(x2)
-    			.ticks(10)
-    			.orient("bottom");
 
 		/* Tip */
 		var tip = d3.tip()
@@ -153,9 +145,13 @@
 		      .attr("transform", function(d) { return "translate(" + x(d.x+0.5) + "," + y(d.y) + ")"; })
 		      .on('mouseover', function (d) {
 		        tip.show(d);
-		        x2.domain([d.x, d.x+1]);
-		        sideChart.select(".x.axis").call(xAxis2);
-		        updateSideChart(sideValues.range([d.x, d.x+1])(d));
+		        if(opts.details!=false) {
+			  x2.domain([d.x, d.x+1]);
+			  sideChart.select(".x.axis").call(xAxis2);
+			  updateSideChart(sideValues.range([d.x, d.x+1])(d));
+			  console.log("d: "+d);
+			  updateTable(d);
+			}
 		      })
 		      .on('mouseout', tip.hide);
 
@@ -184,29 +180,29 @@
 		        .attr("y2", height);
 		}
 
-		  /* x Axis */
-		  svg.append("g")
-		      .attr("class", "x axis")
-		      .attr("transform", "translate(0," + height + ")")
-		      .call(xAxis)
-		    .append("text")
-		      .attr("class", "label")
-		      .attr("x", width1)
-		      .attr("y", 30)
-		      .style("text-anchor", "end")
-		      .text("Grade");
+		/* x Axis */
+		svg.append("g")
+		    .attr("class", "x axis")
+		    .attr("transform", "translate(0," + height + ")")
+		    .call(xAxis)
+		  .append("text")
+		    .attr("class", "label")
+		    .attr("x", width1)
+		    .attr("y", 30)
+		    .style("text-anchor", "end")
+		    .text("Grade");
 
-		  /* y Axis */
-		  svg.append("g")
-		      .attr("class", "y axis")
-		      .call(yAxis)
-		    .append("text")
-		      .attr("class", "label")
-		      .attr("transform", "rotate(-90)")
-		      .attr("y", 6)
-		      .attr("dy", ".71em")
-		      .style("text-anchor", "end")
-		      .text(lng['y-label']);
+		/* y Axis */
+		svg.append("g")
+		    .attr("class", "y axis")
+		    .call(yAxis)
+		  .append("text")
+		    .attr("class", "label")
+		    .attr("transform", "rotate(-90)")
+		    .attr("y", 6)
+		    .attr("dy", ".71em")
+		    .style("text-anchor", "end")
+		    .text(lng['y-label']);
 
 		/* Legend */
 		if(opts.legend!=false) {
@@ -245,15 +241,23 @@
 			}
 		}
 
-		  /** Side Chart **/
+		/** Side Chart **/
+		if(opts.details!=false) {
 		  var sideChart = frame.append("g").attr("transform", "translate("+(margin.left+width1+xgap)+","+margin.top+")");
 
 		  /* Setting up scales */
-		  x2.domain([data.minGrade-0.5, data.maxGrade+0.5])
-		   .rangeRound([0,width2]);
+		  var x2 = d3.scale.linear()
+			.domain([data.minGrade-0.5, data.maxGrade+0.5])
+			.rangeRound([0,width2]);
+
 		  var barWidth2 = x2(1)-x2(0);
 
 		  /* x Axis */
+		  var xAxis2 = d3.svg.axis()
+			.scale(x2)
+			.ticks(10)
+			.orient("bottom");
+
 		  sideChart.append("g")
 		      .attr("class", "x axis")
 		      .attr("transform", "translate(0," + height + ")")
@@ -270,8 +274,7 @@
 
 		    // ENTER - Create new elements as needed.
 		    sbar.enter().append("g")
-		      .attr("class", hilightStudent(data))
-		      .attr("transform", function(d) { return "translate(" + x2(d.x+0.5) + ",0)"; })
+		      .attr("transform", function(d) { return "translate(" + x2(d.x+0.5) + ",0)"; });
 
 		    sbar.append("rect")
 		      .attr("x", 1- barWidth2/2)
@@ -293,7 +296,47 @@
 		      .value(function(d) { return d.grade; });
 
 		  updateSideChart(sideValues(data.students));
+		}
 
+		/** Details Table **/
+		if(opts.table!=false) {
+
+		  var table = d3.select(selector).append("table").attr("class", "table table-hover table-bordered table-condensed");
+
+		  var columns = opts.tableColumns || ["grade", "name"];
+
+		  var theader = table.append("thead");
+		  theader.append("tr").selectAll("th")
+		      .data(function() { return columns.map(function(column) {return {column: column, value: lng["table-columns"][column]};}); })
+		    .enter().append("th")
+		      .text(function(d) { return d.value; });
+
+		  var tbody = table.append("tbody");
+
+		  function updateTable(values) {
+
+		    // DATA JOIN - Join new data with old elements, if any.
+		    var tr = tbody.selectAll("tr")
+		        .data(values);
+
+		    // UPDATE - Update old elements as needed.
+
+		    // ENTER - Create new elements as needed.
+		    tr.enter().append("tr");
+
+		    // ENTER + UPDATE
+		    tr.selectAll("td")
+		      .data( function(row) { return columns.map(function(column) {return {column: column, value: row[column]};}); })
+		    .enter().append("td")
+		    .text(function(d) { console.log("updating cell: "+d); return d.value; });
+
+		    // EXIT - Remove old elements as needed.
+		    tr.exit().remove();
+		  }
+
+		  updateTable(data.students);
+
+		}
 	};
 
 	var multipleDonutsVisualization = function(data, selector, opts) {
