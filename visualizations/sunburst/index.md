@@ -20,25 +20,42 @@ opts:
 
 {% highlight json %}
 {
-	"course": "Fundamentos de Programação",
-	"evaluationName": "1o Teste",
-	"grades": [
-		{ "name": "David Martinho", "grade": 0.2 },
-		{ "name": "Carlos Alberto", "grade": 2.2 },
-		{ "name": "Catarina Dias", "grade": 3.3 },
-		{ "name": "Ricardo Feliz", "grade": 4.2 },
-		{ "name": "Ricardo Feliz", "grade": 5.2 },
-		{ "name": "Ricardo Feliz", "grade": 6.2 },
-		{ "name": "Ricardo Feliz", "grade": 7.2 },
-		{ "name": "Ricardo Feliz", "grade": 8.2 },
-		{ "name": "Ricardo Feliz", "grade": 9.2 },
-		{ "name": "Ricardo Feliz", "grade": 10.2 },
-		{ "name": "Ricardo Feliz", "grade": 11.2 },
-		{ "name": "Ricardo Feliz", "grade": 12.2 },
-		{ "name": "Ricardo Feliz", "grade": 13.2 },
-		{ "name": "Zé Carlos", "grade": 14.2 },
-		{ "name": "Zé Carlos", "grade": 15.2 },
-		{ "name": "Zé Carlos", "grade": 16 }
-	]
+	"acronym": "IP",
+	"name": "Introduction to Programming",
+	"ects": 6.0,
+	"evaluationName": "1st Teste",
+	"studentId": "55371",
+	"marksheet": {
+		"scale": "TYPE20",
+		"grades": [
+			{ "id": "55371", "name": "Xico Felicio", "grade": "RE" },
+			{ "id": "55372", "name": "Carlos Alberto", "grade": "RE" },
+			{ "id": "55373", "name": "Catarina Dias", "grade": 13.3 },
+			{ "id": "55374", "name": "Ricardo Feliz", "grade": "RE" },
+			{ "id": "55375", "name": "Ricardo Feliz", "grade": 15.2 },
+			{ "id": "55376", "name": "Ricardo Feliz", "grade": "RE" },
+			{ "id": "55377", "name": "Ricardo Feliz", "grade": 10.2 },
+			{ "id": "55378", "name": "Ricardo Feliz", "grade": 19.2 },
+			{ "id": "55379", "name": "Ricardo Feliz", "grade": 11.2 },
+			{ "id": "55380", "name": "Ricardo Feliz", "grade": 16.2 },
+			{ "id": "55381", "name": "Ricardo Feliz", "grade": "NE" },
+			{ "id": "55381", "name": "Ricardo Feliz", "grade": "RE" },
+			{ "id": "55381", "name": "Ricardo Feliz", "grade": 16.2 },
+			{ "id": "55381", "name": "Ricardo Feliz", "grade": 16.2 },
+			{ "id": "55381", "name": "Ricardo Feliz", "grade": 16.2 },
+			{ "id": "55381", "name": "Ricardo Feliz", "grade": 16.2 },
+			{ "id": "55381", "name": "Ricardo Feliz", "grade": 16.2 },
+			{ "id": "55381", "name": "Ricardo Feliz", "grade": 16.2 },
+			{ "id": "55381", "name": "Ricardo Feliz", "grade": 16.2 },
+			{ "id": "55381", "name": "Ricardo Feliz", "grade": 13.2 },
+			{ "id": "55381", "name": "Ricardo Feliz", "grade": "NE" },
+			{ "id": "55381", "name": "Ricardo Feliz", "grade": 12.2 },
+			{ "id": "55382", "name": "Ricardo Feliz", "grade": "RE" },
+			{ "id": "55383", "name": "Ricardo Feliz", "grade": "NE" },
+			{ "id": "55384", "name": "Zé Carlos", "grade": 14.2 },
+			{ "id": "55385", "name": "Zé Carlos", "grade": 15.2 },
+			{ "id": "55386", "name": "Zé Carlos", "grade": 16 }
+		]
+	}
 }
 {% endhighlight %}

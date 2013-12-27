@@ -6,14 +6,14 @@
 
 	var svizIsNotInitialized = true;
 
-	var DEBUG_MODE = false;
+	var DEBUG_MODE = true;
 
 	var i18nOpts = {
 		fallbackLng: 'en',
 		lng: 'en',
 		localesRelPath: '/locales/__lng__/__ns__.json',
 		localesBasePath: '/js',
-		getAsync: true,
+		getAsync: false,
 		debug: false
 	};
 
@@ -535,16 +535,6 @@
 
 	var sunburst = function(data, selector, opts) {
 
-		var colors = {
-		  "0-4": "darkred",
-		  "5-9": "orange",
-		  "10-14": "yellow",
-		  "15-20": "lightgreen",
-		  "Approved": "green",
-		  "Flunked": "red",
-		  "Not Evaluated": "black"
-		};
-
 		var defaultWidth = 300;
 		var defaultHeight = 250;
 
@@ -552,14 +542,16 @@
 		var height = opts ? opts.height || defaultHeight : defaultHeight;
 		var radius = Math.min(width, height) / 2;
 
-		var totalSize = data.grades.length;
+		var totalSize = data.marksheet.grades.length;
+
+		var lng = i18n.t("sunburst", { returnObjectTrees: true });
 
 		var buildGradeHierarchy = function(data) {
 			var onlyFlunked = false;
 			var root = { name: "root", children : [] };
-			var approved = { name: "Approved", children: [] };
-			var flunked = { name: "Flunked", children: [] };
-			var notEvaluated = { name: "Not Evaluated", children: [] };
+			var approved = { name: "approved", children: [] };
+			var flunked = { name: "flunked", children: [] };
+			var notEvaluated = { name: "not-evaluated", children: [] };
 			var a1h = { name: "10-14", children: [] };
 			var a2h = { name: "15-20", children: [] };
 			var f1h = { name: "0-4", children: [] };
@@ -617,8 +609,6 @@
 			return root;
 		};
 
-		var centerBox = $(selector).append("<div class=\"sunburst-center-box\"><span class=\"sunburst-percentage\"></span><span class=\"sunburst-text\"></span></div>");
-
 		var vis = d3.select(selector).append("svg")
 			.attr("width", width)
 			.attr("height", height)
@@ -640,7 +630,7 @@
 	      .attr("r", radius)
 	      .style("opacity", 0);
 
-	    var json = buildGradeHierarchy(data.grades);
+	    var json = buildGradeHierarchy(data.marksheet.grades);
 		var nodes = partition.nodes(json);
 		var path = vis.data([json]).selectAll("path")
 	      .data(nodes)
@@ -648,18 +638,27 @@
 	      .attr("display", function(d) { return d.depth ? null : "none"; })
 	      .attr("d", arc)
 	      .attr("title", function(d) { return d.size+"/"+totalSize; })
-	      .attr("class", "sunburst-path tip")
+	      .attr("class", function(d) { return "sunburst-path tip sunburst-path-"+d.name; })
 	      .attr("fill-rule", "evenodd")
-      	  .style("fill", function(d) { return colors[d.name]; })
 	      .style("opacity", 1)
 	      .on("mouseover", function(d) {
 	      	$(".sunburst-percentage", selector).text(d3.round((d.value/totalSize)*100, 1)+"%");
-	      	$(".sunburst-text", selector).text(d.name);
+	      	$(".sunburst-text", selector).text(lng[d.name]);
 	      })
 	      .on("mouseout", function(d) {
 	      	$(".sunburst-percentage", selector).text("");
 	      	$(".sunburst-text", selector).text("");
 	      });
+
+		vis.append("text")
+			.attr("class", "sunburst-percentage")
+			.attr("text-anchor", "middle");
+		
+		vis.append("text")
+			.attr("y", 20)
+			.attr("class", "sunburst-text")
+			.attr("text-anchor", "middle");
+	
 
 		$(".tip").qtip({
 			style: "qtip-tipsy",
@@ -769,12 +768,13 @@
 
 	var initializeSViz = function() {
 		i18nOpts.resGetPath = i18nOpts.localesBasePath + i18nOpts.localesRelPath;
-		i18n.init(i18nOpts);
+		i18n.init(i18nOpts, function() { log.debug("i18n initialized"); });
 		svizIsNotInitialized = false;
 	};
 
 	SViz.loadViz = function(vizName, data, selector, opts) {
 		if(svizIsNotInitialized) {
+			log.debug("SViz is not initialized. Initializing...");
 			initializeSViz();
 		}
 		if (visualizations[vizName] !== "undefined") {

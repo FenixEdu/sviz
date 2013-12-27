@@ -19,5 +19,14 @@
     "not-evaluated-grades": "Não Avaliados",
     "negative-grades": "Reprovados",
     "positive-grades": "Aprovados"
+  },
+  "sunburst": {
+    "not-evaluated": "Não Avaliados",
+    "flunked": "Reprovados",
+    "approved": "Aprovados",
+    "0-4": "0-4",
+    "5-9": "5-9",
+    "10-14": "10-14",
+    "15-20": "15-20"
   }
 }
