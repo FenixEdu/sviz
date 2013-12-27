@@ -7,7 +7,7 @@ layout: default
 
 <div id="visualization"></div>
 <script>
-  SViz.init({ localesBasePath: "{{site.baseurl}}" });
+  SViz.init({ localesBasePath: "{{site.baseurl}}/js" });
   SViz.loadViz("{{ page.call }}", "{{site.baseurl}}/visualizations/{{page.path}}/example.json", "#visualization" {{page.call_args}});
 </script>
 
