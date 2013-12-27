@@ -6,7 +6,8 @@ layout: default
 <p class="help-block" style="margin-bottom: 20px">{{page.description}}</p>
 
 <div id="visualization"></div>
-<script> 
+<script>
+  SViz.init({ localesBasePath: "{{site.baseurl}}" });
   SViz.loadViz("{{ page.call }}", "{{site.baseurl}}/visualizations/{{page.path}}/example.json", "#visualization" {{page.call_args}});
 </script>
 
