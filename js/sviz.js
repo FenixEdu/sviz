@@ -82,59 +82,61 @@
 
 		var lng = i18n.t("histogram", { returnObjectTrees: true });
 
+		/* Margins and SVG container */
 		var margin = {top: 10, right: 20, bottom: 20, left: 30}, xgap = 50,
-    			width1 = 560 - margin.left - xgap/2,
-    			width2 = 250 - xgap/2 - margin.right,
-    			height = 260 - margin.top - margin.bottom;
+			width1 = 560 - margin.left - xgap/2,
+			width2 = 250 - xgap/2 - margin.right,
+			height = 260 - margin.top - margin.bottom;
+
+		var frame = d3.select(selector).append("svg")
+		  .attr("width", width1 + width2 + xgap + margin.left + margin.right)
+		  .attr("height", height + margin.top + margin.bottom);
+		var svg = frame.append("g")
+		  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+		/* Sorting */
+		function comparator(a, b) {
+			if (a.grade > b.grade) return 1;
+			if (a.grade < b.grade) return -1;
+			// equal grades, solve by ID
+			if (a.ID > b.ID) return 1;
+			if (a.ID < b.ID) return -1;
+			return 0;
+		}
+
+		function sortBinElements(element, index, array) {
+			element.sort(comparator);
+		}
 
 		/* Axes */
 		var x = d3.scale.linear();
 
 		var xAxis = d3.svg.axis()
-    			.scale(x)
-			.ticks(20)
-    			.orient("bottom");
+		  .scale(x)
+		  .ticks(20)
+		  .orient("bottom");
 
 		var y = d3.scale.linear()
-    			.rangeRound([height, 0]);
+		  .rangeRound([height, 0]);
 
 		var yAxis = d3.svg.axis()
-    			.scale(y)
-    			.orient("left");
+		  .scale(y)
+		  .orient("left");
 
-    		function comparator(a, b) {
-			if (a.grade > b.grade) return 1;
-		    	if (a.grade < b.grade) return -1;
-		    	// equal grades, solve by ID
-	 		if (a.ID > b.ID) return 1;
-    			if (a.ID < b.ID) return -1;
-    			return 0;
-		}
+		/* Setting up scales and bins */
+		x.domain([data.minGrade-0.5, data.maxGrade+0.5])
+		  .rangeRound([0,width1]);
 
-		function sortBinElements(element, index, array) {
-  			element.sort(comparator);
-		}
+		var barWidth = x(1)-x(0);
 
-		var frame = d3.select(selector).append("svg")
-    			.attr("width", width1 + width2 + xgap + margin.left + margin.right)
-    			.attr("height", height + margin.top + margin.bottom);
-		var svg = frame.append("g")
-    			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+		var values = d3.layout.histogram()
+		  .range([data.minGrade-0.5, data.maxGrade+0.5])
+		  .bins(data.maxGrade+1)
+		  .value(function(d) { return d.grade; })
+		  (data.students);
+		values.forEach(sortBinElements);
 
-		  /* Setting up scales and bins */
-		  x.domain([data.minGrade-0.5, data.maxGrade+0.5])
-		   .rangeRound([0,width1]);
-
-		  var barWidth = x(1)-x(0);
-
-		  var values = d3.layout.histogram()
-		      .range([data.minGrade-0.5, data.maxGrade+0.5])
-		      .bins(data.maxGrade+1)
-		      .value(function(d) { return d.grade; })
-		      (data.students);
-		  values.forEach(sortBinElements);
-
-		  y.domain([0, d3.max(values, function(d) { return d.y; })])
+		y.domain([0, d3.max(values, function(d) { return d.y; })])
 
 		/* min Grade Rectangle */
 		if(data.minRequiredGrade && opts.showMinGrade!=false) {
@@ -146,72 +148,66 @@
 		        .attr("height", height);
 		}
 
-		/* bars */
+		/** Bars - Main **/
 		var hilightStudent = function(data) {
-			return function(d) {
-				if(data.selfID && opts.hilightStudent!=false) {
-				        for(var i in d) {
-				          if(!(i in {'x':1, 'dx':1, 'y':1}))
-				            if(d[i].ID == data.selfID){
-				              return "tip bar you";
-				            }
-				        }
-				}
-			        return "tip bar";
-			}
+		  return function(d) {
+		    if(data.selfID && opts.hilightStudent!=false) {
+		      for(var i in d) {
+		        if(!(i in {'x':1, 'dx':1, 'y':1})) {
+		          if(d[i].ID == data.selfID) {
+		            return "tip bar you";
+		    }}}}
+		    return "tip bar";
+		  }
 		}
 
-		  var bar = svg.selectAll(".bar")
-		      .data(values)
-		    .enter().append("g")
-		      .attr("title",function(d){
-		        var str = "";
-		        for(var i in d) {
-		          if(!(i in {'x':1, 'dx':1, 'y':1}))
-		            str += "<div><img src='"+d[i].photo+"' width='18' height='18' style='vertical-align:middle;/><span style='vertical-align:middle;'> "+d[i].name+" - "+d[i].grade+"</span></div><br/>";
-		        }
-		        return "<span style='color:red'>" + str + "</span>"; })
-		      .attr("class",hilightStudent(data))
-		      .attr("transform", function(d) { return "translate(" + x(d.x+0.5) + "," + y(d.y) + ")"; })
-		      .on('mouseover', function (d) {
-		        if(opts.details!=false) {
-			  x2.domain([d.x, d.x+1]);
-			  sideChart.select(".x.axis").call(xAxis2);
-			  updateSideChart(sideValues.range([d.x, d.x+1])(d));
-			  updateTable(d);
-			}
-		      });
+		var bar = svg.selectAll(".bar")
+		    .data(values)
+		  .enter().append("g")
+		    .attr("class",hilightStudent(data))
+		    .attr("title",function(d){ return tipContent(d); })
+		    .attr("transform", function(d) { return "translate(" + x(d.x+0.5) + "," + y(d.y) + ")"; })
+		    .on('mouseover', function (d) {
+		      if(opts.details!=false) {
+		        x2.domain([d.x, d.x+1]);
+		        sideChart.select(".x.axis").call(xAxis2);
+		        updateSideChart(sideValues.range([d.x, d.x+1])(d));
+		      }
+		      if(opts.table!=false) {
+		        updateTable(d);
+		      }
+		    });
 
-		  bar.append("rect")
-		      .attr("x", 1- barWidth/2)
-		      .attr("width", barWidth -2)
-		      .attr("height", function(d) { return height - y(d.y); });
+		bar.append("rect")
+		  .attr("x", 1- barWidth/2)
+		  .attr("width", barWidth -2)
+		  .attr("height", function(d) { return height - y(d.y); });
 
-		  /* number with count inside bars */
-		  bar.append("text")
-		      .attr("dy", ".75em")
-		      .attr("y", 6)
-		      .attr("x", 0)
-		      .attr("text-anchor", "middle")
-		      .text(function(d) { if(d.y!=0) {return d.y;} });
+		/* number with count inside bars */
+		bar.append("text")
+		  .attr("dy", ".75em")
+		  .attr("y", 6)
+		  .attr("x", 0)
+		  .attr("text-anchor", "middle")
+		  .text(function(d) { if(d.y!=0) {return d.y;} });
 
 		/* min Grade Line */
 		if(data.minRequiredGrade && opts.showMinGrade!=false) {
 		  svg.append("g")
-		      .attr("class", "line")
-		      .attr("transform", function(d) { return "translate(" + x(data.minRequiredGrade) + ", 0)"; })
-		      .append("line")
-		        .attr("x1", 0)
-		        .attr("x2", 0)
-		        .attr("y1", 0)
-		        .attr("y2", height);
+		    .attr("class", "line")
+		    .attr("transform", function(d) { return "translate(" + x(data.minRequiredGrade) + ", 0)"; })
+		    .append("line")
+		      .attr("x1", 0)
+		      .attr("x2", 0)
+		      .attr("y1", 0)
+		      .attr("y2", height);
 		}
 
 		/* x Axis */
 		svg.append("g")
-		    .attr("class", "x axis")
-		    .attr("transform", "translate(0," + height + ")")
-		    .call(xAxis)
+		  .attr("class", "x axis")
+		  .attr("transform", "translate(0," + height + ")")
+		  .call(xAxis)
 		  .append("text")
 		    .attr("class", "label")
 		    .attr("x", width1)
@@ -221,8 +217,8 @@
 
 		/* y Axis */
 		svg.append("g")
-		    .attr("class", "y axis")
-		    .call(yAxis)
+		  .attr("class", "y axis")
+		  .call(yAxis)
 		  .append("text")
 		    .attr("class", "label")
 		    .attr("transform", "rotate(-90)")
@@ -233,45 +229,54 @@
 
 		/* Legend */
 		if(opts.legend!=false) {
-			var legend = svg.append("g")
-			      .attr("class", "legend")
-			      .attr("transform", "translate(0,0)");
+		  var legend = svg.append("g")
+		    .attr("class", "legend")
+		    .attr("transform", "translate(0,0)");
 
-			var dy=0;
-			if(data.selfID && opts.hilightStudent!=false) {
-				var l = legend.append("g").attr("transform", "translate("+(width1-18)+","+dy+")");
-				l.append("rect")
-				        .attr("width", 18)
-				        .attr("height", 18)
-				        .style("fill", "purple")
-				l.append("text")
-				        .attr("x", -6)
-				        .attr("y", 9)
-				        .attr("dy", ".35em")
-				        .style("text-anchor", "end")
-				        .text(lng['self-id']);
-				dy+=20;
-			}
-			if(data.minRequiredGrade && opts.showMinGrade!=false) {
-				var l = legend.append("g").attr("transform", "translate("+(width1-18)+","+dy+")");
-				l.append("line")
-				      .attr("x2", 18)
-				      .attr("y1", 9)
-				      .attr("y2", 9)
-				      .attr("class", "line");
-				l.append("text")
-				      .attr("x", -6)
-				      .attr("y", 9)
-				      .attr("dy", ".35em")
-				      .style("text-anchor", "end")
-				      .text(lng['min-grade']);
-			}
+		  var dy=0;
+		  if(data.selfID && opts.hilightStudent!=false) {
+		    var l = legend.append("g").attr("transform", "translate("+(width1-18)+","+dy+")");
+		    l.append("rect")
+		      .attr("width", 18)
+		      .attr("height", 18)
+		      .style("fill", "purple");
+		    l.append("text")
+		      .attr("x", -6)
+		      .attr("y", 9)
+		      .attr("dy", ".35em")
+		      .style("text-anchor", "end")
+		      .text(lng['self-id']);
+		    dy+=20;
+		  }
+		  if(data.minRequiredGrade && opts.showMinGrade!=false) {
+		    var l = legend.append("g").attr("transform", "translate("+(width1-18)+","+dy+")");
+		    l.append("line")
+		      .attr("x2", 18)
+		      .attr("y1", 9)
+		      .attr("y2", 9)
+		      .attr("class", "line");
+		    l.append("text")
+		      .attr("x", -6)
+		      .attr("y", 9)
+		      .attr("dy", ".35em")
+		      .style("text-anchor", "end")
+		      .text(lng['min-grade']);
+		  }
 		}
 
 		/* Tooltip */
+		function tipContent(d) {
+		  var str = "";
+		  for(var i in d) {
+		    if(!(i in {'x':1, 'dx':1, 'y':1}))
+		      str += "<div><img src='"+d[i].photo+"' width='18' height='18' style='vertical-align:middle;/><span style='vertical-align:middle;'> "+d[i].name+" - "+d[i].grade+"</span></div><br/>";
+		  }
+		  return "<span style='color:red'>" + str + "</span>";
+		}
 		//corner: { target: 'topMiddle', tooltip: 'bottomMiddle' }
-		$(".tip").qtip({style: "qtip-tipsy",
-				position: { target: 'mouse', adjust: { x: 10, y: 10 } }});
+		$(".tip").qtip({
+		  style: "qtip-tipsy",
+		  position: { target: 'mouse', adjust: { x: 10, y: 10 } }});
 
 		/** Side Chart **/
 		if(opts.details!=false) {
@@ -279,28 +284,28 @@
 
 		  /* Setting up scales */
 		  var x2 = d3.scale.linear()
-			.domain([data.minGrade-0.5, data.maxGrade+0.5])
-			.rangeRound([0,width2]);
+		    .domain([data.minGrade-0.5, data.maxGrade+0.5])
+		    .rangeRound([0,width2]);
 
 		  var barWidth2 = x2(1)-x2(0);
 
 		  /* x Axis */
 		  var xAxis2 = d3.svg.axis()
-			.scale(x2)
-			.ticks(10)
-			.orient("bottom");
+		    .scale(x2)
+		    .ticks(10)
+		    .orient("bottom");
 
 		  sideChart.append("g")
-		      .attr("class", "x axis")
-		      .attr("transform", "translate(0," + height + ")")
-		      .call(xAxis2)
+		    .attr("class", "x axis")
+		    .attr("transform", "translate(0," + height + ")")
+		    .call(xAxis2)
 
 		  /* bars */
 		  function updateSideChart(sideValues) {
 
 		    // DATA JOIN - Join new data with old elements, if any.
 		    var sbar = sideChart.selectAll(".bar")
-		        .data(sideValues);
+		      .data(sideValues);
 
 		    // ENTER - Create new elements as needed.
 		    sbar.enter().append("g")
@@ -320,9 +325,9 @@
 		  }
 
 		  var sideValues = d3.layout.histogram()
-		      .range([data.minGrade-0.5, data.maxGrade+0.5])
-		      .bins(11)
-		      .value(function(d) { return d.grade; });
+		    .range([data.minGrade-0.5, data.maxGrade+0.5])
+		    .bins(11)
+		    .value(function(d) { return d.grade; });
 
 		  updateSideChart(sideValues(data.students));
 		}
@@ -344,7 +349,7 @@
 		  function updateTable(values) {
 		    // DATA JOIN - Join new data with old elements, if any.
 		    var tr = tbody.selectAll("tr")
-		        .data(values);
+		      .data(values);
 
 		    // ENTER - Create new elements as needed.
 		    tr.enter().append("tr");
