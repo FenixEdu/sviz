@@ -2,7 +2,7 @@
 layout: visualization
 path: histogram
 title: Histogram
-description: An histogram of marks obtained in an evaluation with optional detailed side and table views.
+description: An histogram of the marks obtained in an evaluation. This visualization has optional detailed side and table views when hovering the main chart.
 call: showHistogram
 call_args: ", {details: true}"
 sample_call: 'SViz.showHistogram("data.json", "#visualization", {width: 1000});'
@@ -14,7 +14,7 @@ opts:
     - true
     - show a detailed table
   - - tableColumns
-    - ["grade", "name"]
+    - "['ID', 'photo', 'name', 'grade']"
     - ordered visibility of the table's columns
   - - legend
     - true

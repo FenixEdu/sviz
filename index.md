@@ -13,28 +13,28 @@ title: FenixEdu™ SViz - Visualizing student information
 <div class="row">
 	<div class="col-lg-4">
 		<div class="well">
-			<h1 class="text-center"><i class="glyphicon glyphicon-filter"></i></h1>
-			<h4 class="text-center">Condensate Data</h4>
-			<p class="text-center">SViz allows you to condensate data overflow about the student curricular information.</p>
+			<h1 class="text-center"><i class="glyphicon glyphicon-eye-open"></i></h1>
+			<h4 class="text-center">Improved Perception</h4>
+			<p class="text-center">SViz visualizations improve the information students perceive about their curricular life.</p>
+		</div>
+	</div>
+	<div class="col-lg-4">
+		<div class="well">
+			<h1 class="text-center"><i class="glyphicon glyphicon-signal"></i></h1>
+			<h4 class="text-center">Graphic Presentation</h4>
+			<p class="text-center">SViz graphically displays relevant information in an appealing and interactive way.</p>
 		</div>
 	</div>
 	<div class="col-lg-4">
 		<div class="well">
 			<h1 class="text-center"><i class="glyphicon glyphicon-wrench"></i></h1>
 			<h4 class="text-center">Highly Customizable</h4>
-			<p class="text-center">SViz has a lot of customization entrypoints that you can modify and adapt to your requirements.</p>
-		</div>
-	</div>
-	<div class="col-lg-4">
-		<div class="well">
-			<h1 class="text-center"><i class="glyphicon glyphicon-eye-open"></i></h1>
-			<h4 class="text-center">Improved Perception</h4>
-			<p class="text-center">SViz visualizations improves the information students perceive about their curricular life.</p>
+			<p class="text-center">SViz has a lot of customizable entrypoints that you can use and modify to your needs.</p>
 		</div>
 	</div>
 </div>
 <div style="margin-bottom: 20px">
-	<p>SViz is built on top of the <a href="http://d3js.org/">D3.js library</a> and part of the <a href="http://fenixedu.org/">FenixEdu</a> Education suite where it is used to display a student's academic progress and success.<br/>
+	<p>SViz is built on top of the <a href="http://d3js.org/">D3.js library</a> and is part of the <a href="http://fenixedu.org/">FenixEdu</a> Education suite where it is used for displaying a student's academic progress and success.<br/>
 	Both SViz and D3 have permissive licenses so that you can easily include our visualizations in your website.</p>
 	<button type="button" class="btn btn-primary" onclick="location.href='{{site.baseurl}}/pages/download.html'">Download</button>
 </div>
