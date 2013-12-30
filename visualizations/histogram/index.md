@@ -25,6 +25,9 @@ opts:
   - - showMinGrade
     - true
     - show minimum grade
+  - - tooltip
+    - true
+    - show tooltip
 ---
 
 
