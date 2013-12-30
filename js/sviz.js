@@ -14,7 +14,7 @@
 		localesRelPath: '/locales/__lng__/__ns__.json',
 		localesBasePath: '/js',
 		getAsync: false,
-		debug: false
+		debug: true
 	};
 
 	var log = {
@@ -102,19 +102,6 @@
     			.scale(y)
     			.orient("left");
 
-		/* Tip */
-		var tip = d3.tip()
-		  .attr('class', 'd3-tip')
-		  .offset([-10, 0])
-		  .html(function(d) {
-		    var str = "";
-		    for(var i in d) {
-		      if(!(i in {'x':1, 'dx':1, 'y':1}))
-		        str += "<div><img src='"+d[i].photo+"' width='18' height='18' style='vertical-align:middle;/><span style='vertical-align:middle;'> "+d[i].name+" - "+d[i].grade+"</span></div><br/>";
-		    }
-		    return "<span style='color:red'>" + str + "</span>";
-		  })
-
     		function comparator(a, b) {
 			if (a.grade > b.grade) return 1;
 		    	if (a.grade < b.grade) return -1;
@@ -133,8 +120,6 @@
     			.attr("height", height + margin.top + margin.bottom);
 		var svg = frame.append("g")
     			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-		svg.call(tip);
 
 		  /* Setting up scales and bins */
 		  x.domain([data.minGrade-0.5, data.maxGrade+0.5])
@@ -168,29 +153,34 @@
 				        for(var i in d) {
 				          if(!(i in {'x':1, 'dx':1, 'y':1}))
 				            if(d[i].ID == data.selfID){
-				              return "bar you";
+				              return "tip bar you";
 				            }
 				        }
 				}
-			        return "bar";
+			        return "tip bar";
 			}
 		}
 
 		  var bar = svg.selectAll(".bar")
 		      .data(values)
 		    .enter().append("g")
+		      .attr("title",function(d){
+		        var str = "";
+		        for(var i in d) {
+		          if(!(i in {'x':1, 'dx':1, 'y':1}))
+		            str += "<div><img src='"+d[i].photo+"' width='18' height='18' style='vertical-align:middle;/><span style='vertical-align:middle;'> "+d[i].name+" - "+d[i].grade+"</span></div><br/>";
+		        }
+		        return "<span style='color:red'>" + str + "</span>"; })
 		      .attr("class",hilightStudent(data))
 		      .attr("transform", function(d) { return "translate(" + x(d.x+0.5) + "," + y(d.y) + ")"; })
 		      .on('mouseover', function (d) {
-		        tip.show(d);
 		        if(opts.details!=false) {
 			  x2.domain([d.x, d.x+1]);
 			  sideChart.select(".x.axis").call(xAxis2);
 			  updateSideChart(sideValues.range([d.x, d.x+1])(d));
 			  updateTable(d);
 			}
-		      })
-		      .on('mouseout', tip.hide);
+		      });
 
 		  bar.append("rect")
 		      .attr("x", 1- barWidth/2)
@@ -278,6 +268,11 @@
 			}
 		}
 
+		/* Tooltip */
+		//corner: { target: 'topMiddle', tooltip: 'bottomMiddle' }
+		$(".tip").qtip({style: "qtip-tipsy",
+				position: { target: 'mouse', adjust: { x: 10, y: 10 } }});
+
 		/** Side Chart **/
 		if(opts.details!=false) {
 		  var sideChart = frame.append("g").attr("transform", "translate("+(margin.left+width1+xgap)+","+margin.top+")");
@@ -358,7 +353,6 @@
 		    tr.selectAll("td")
 		      .data( function(row) { return columns.map(function(column) {return {column: column, value: row[column]};}); })
 		    .enter().append("td");
-
 		    tr.selectAll("td")
 		      .html(function(d) { return d.column=="photo"? "<img src='"+d.value+"' width='25px' alt='photo'/>" : d.value; });
 
