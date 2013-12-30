@@ -1,6 +1,6 @@
 [
-	{ "acronym": "IP", "name": "Introduction to Programming", "positive-grades": 74, "negative-grades": 34, "not-evaluated-grades": 21, "total": 108, "median": 12.4, "stdDev": 2.45 },
-	{ "acronym": "OOP", "name": "Object Oriented Programming", "positive-grades": 534, "negative-grades": 234, "not-evaluated-grades": 21, "total": 768, "median": 12.4, "stdDev": 2.45 },
+	{ "acronym": "IP", "name": "Introduction to Programming", "positive-grades": 74, "negative-grades": 34, "not-evaluated-grades": 21, "median": 12.4, "stdDev": 2.45 },
+	{ "acronym": "OOP", "name": "Object Oriented Programming", "positive-grades": 534, "negative-grades": 234, "not-evaluated-grades": 21, "median": 12.4, "stdDev": 2.45 },
 	{ "acronym": "DS", "name": "Digital Systems", "positive-grades": 228, "negative-grades": 133, "total": 361, "not-evaluated-grades": 21, "median": 12.4, "stdDev": 2.45 },
-	{ "acronym": "DM", "name": "Discrete Mathematics", "positive-grades": 22, "negative-grades": 133, "not-evaluated-grades": 21, "total": 155, "median": 12.4, "stdDev": 2.45 }
+	{ "acronym": "DM", "name": "Discrete Mathematics", "positive-grades": 22, "negative-grades": 133, "not-evaluated-grades": 21, "median": 12.4, "stdDev": 2.45 }
 ]

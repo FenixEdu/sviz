@@ -352,7 +352,6 @@
 		  var tbody = table.append("tbody");
 
 		  function updateTable(values) {
-
 		    // DATA JOIN - Join new data with old elements, if any.
 		    var tr = tbody.selectAll("tr")
 		        .data(values);
@@ -365,11 +364,17 @@
 		    // ENTER + UPDATE
 		    tr.selectAll("td")
 		      .data( function(row) { return columns.map(function(column) {return {column: column, value: row[column]};}); })
-		    .enter().append("td")
-		    .text(function(d) { console.log("updating cell: "+d); return d.value; });
+		    .enter().append("td");
+
+		    tr.selectAll("td")
+				.text(function(d) { console.log("updating cell: "+d); return d.value; });
+
 
 		    // EXIT - Remove old elements as needed.
 		    tr.exit().remove();
+
+		    tr.sort(function(a,b) { return b.grade - a.grade; })
+
 		  }
 
 		  updateTable(data.students);
@@ -398,10 +403,10 @@
 		    .sort(null)
 		    .value(function(d) { return d.population; });
 
-		var domain = ["not-evaluated-grades", "negative-grades", "positive-grades"];
+		var domain = ["positive-grades", "negative-grades", "not-evaluated-grades"];
 
 		  data.forEach(function(d) {
-
+     		d.total = d["not-evaluated-grades"]+d["negative-grades"]+d["positive-grades"];
 		    d.values = domain.map(function(name) {
 		      var perc = d3.round((+d[name])/(+d["total"])*100,1)+"%";
 		      return { name: name, population: +d[name], perc: perc};
@@ -428,20 +433,20 @@
 		      .attr("dy", ".35em")
 		      .text( function(d) { return lng[d]; });
 
-		  var svg = d3.select(selector).selectAll(".small-pie")
+		  var svg = d3.select(selector).selectAll(".donut")
 		      .data(data)
 		    .enter().append("svg")
-		      .attr("class", "small-pie")
+		      .attr("class", "donut")
 		      .attr("width", radius * 2)
 		      .attr("height", radius * 2)
 		    .append("g")
 		      .attr("transform", "translate(" + radius + "," + radius + ")");
 
-		  svg.selectAll(".arc")
+		  svg.selectAll(".donut-arc")
 		      .data(function(d) { return pie(d.values); })
 		    .enter().append("path")
 		      .attr("title", function(d) { return d.data.perc; })
-		      .attr("class", function(d) { return "arc tip donut-"+d.data.name; })
+		      .attr("class", function(d) { return "tip donut-arc donut-"+d.data.name; })
 		      .attr("d", arc);
 
 		  svg.append("text")
@@ -546,7 +551,13 @@
 
 		var lng = i18n.t("sunburst", { returnObjectTrees: true });
 
-		var buildGradeHierarchy = function(data) {
+		var injectOwnGradeFlag = function(json, isDatum) {
+			if(isDatum) {
+				json.studentGrade = true;
+			}
+		};
+
+		var buildGradeHierarchy = function(data, studentId) {
 			var onlyFlunked = false;
 			var root = { name: "root", children : [] };
 			var approved = { name: "approved", children: [] };
@@ -558,21 +569,30 @@
 			var f2h = { name: "5-9", children: [] };
 			$.each(data, function(i, datum) {
 				var grade = datum.grade;
+				var isStudentGrade = datum.id === studentId;
 				if(grade === "NE") {
 					notEvaluated.children.push(datum);
+					injectOwnGradeFlag(notEvaluated, isStudentGrade);
 				} else if(grade === "RE" || d3.round(grade,0) < 10) {
 					if(grade === "RE") {
 						onlyFlunked = true;
 						flunked.children.push(datum);
+						injectOwnGradeFlag(flunked, isStudentGrade);
 					} else if(d3.round(grade,0) <= 4) {
+						injectOwnGradeFlag(f1h, isStudentGrade);
 						f1h.children.push(datum);
 					} else {
+						injectOwnGradeFlag(f2h, isStudentGrade);
 						f2h.children.push(datum);
 					}
 				} else {
 					if(d3.round(grade,0) <= 14) {
+						injectOwnGradeFlag(a1h, isStudentGrade);
+
 						a1h.children.push(datum);
 					} else {
+						injectOwnGradeFlag(a2h, isStudentGrade);
+
 						a2h.children.push(datum);
 					}
 				}
@@ -626,11 +646,18 @@
 		    .innerRadius(function(d) { return Math.sqrt(d.y); })
 		    .outerRadius(function(d) { return Math.sqrt(d.y + d.dy); });
 
+		var overarc = d3.svg.arc()
+		  .startAngle(function(d) { return d.x+5; })
+		    .endAngle(function(d) { return d.x + d.dx+5; })
+		    .innerRadius(function(d) { return Math.sqrt(d.y); })
+		    .outerRadius(function(d) { return Math.sqrt(d.y + d.dy); });
+
 	    vis.append("circle")
 	      .attr("r", radius)
 	      .style("opacity", 0);
 
-	    var json = buildGradeHierarchy(data.marksheet.grades);
+	    var studentD = undefined;
+	    var json = buildGradeHierarchy(data.marksheet.grades, data.studentId);
 		var nodes = partition.nodes(json);
 		var path = vis.data([json]).selectAll("path")
 	      .data(nodes)
@@ -638,16 +665,27 @@
 	      .attr("display", function(d) { return d.depth ? null : "none"; })
 	      .attr("d", arc)
 	      .attr("title", function(d) { return d.size+"/"+totalSize; })
-	      .attr("class", function(d) { return "sunburst-path tip sunburst-path-"+d.name; })
+	      .attr("class", function(d) {
+	      	var classes = "sunburst-path tip sunburst-path-"+d.name;
+	      	if(d.studentGrade) {
+				studentD = d;
+	      		classes = classes+" sunburst-own-grade";
+	      	}
+	      	return classes;
+	      })
 	      .attr("fill-rule", "evenodd")
-	      .style("opacity", 1)
+	      .style("opacity", function(d) { return d.studentGrade?1:0.3; })
 	      .on("mouseover", function(d) {
+	      	$(".sunburst-path").attr("style", "opacity: 0.3");
+	      	$(this).attr("style", "opacity: 1");
 	      	$(".sunburst-percentage", selector).text(d3.round((d.value/totalSize)*100, 1)+"%");
 	      	$(".sunburst-text", selector).text(lng[d.name]);
 	      })
 	      .on("mouseout", function(d) {
-	      	$(".sunburst-percentage", selector).text("");
-	      	$(".sunburst-text", selector).text("");
+	      	$(this).attr("style", "opacity: 0.3");
+	      	$(".sunburst-own-grade").attr("style", "opacity: 1");
+	      	$(".sunburst-percentage", selector).text(d3.round((studentD.value/totalSize)*100, 1)+"%");
+	      	$(".sunburst-text", selector).text(lng[studentD.name]);
 	      });
 
 		vis.append("text")
@@ -659,6 +697,8 @@
 			.attr("class", "sunburst-text")
 			.attr("text-anchor", "middle");
 	
+		$(".sunburst-percentage", selector).text(d3.round((studentD.value/totalSize)*100, 1)+"%");
+      	$(".sunburst-text", selector).text(lng[studentD.name]);
 
 		$(".tip").qtip({
 			style: "qtip-tipsy",
