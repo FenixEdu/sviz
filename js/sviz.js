@@ -31,6 +31,13 @@
 	};
 
 	var util = {
+		valuesInsideDomainOnly : function(data) {
+			return function(d) {
+				if(d.grade>=data.minGrade && d.grade<=data.maxGrade) {
+					return d.grade;
+				}
+			};
+		},
 		computeMinMaxAndQuartiles : function(data, key) {
 			var values = [];
 			data.forEach(function(datum) {
@@ -49,13 +56,6 @@
 		}
 	};
 
-	var valuesInsideDomainOnly = function(data) {
-		return function(d) {
-			if(d.grade>=data.minGrade && d.grade<=data.maxGrade) {
-				return d.grade;
-			}
-		};
-	};
 
 	var statisticsVisualization = function(data, selector, opts) {
 		if(!opts) var opts={};
@@ -71,9 +71,9 @@
 	  		d3.select(selector).append("p")
 	  			.text( lng["no-attends"] + d3.round(noAttendStudents*100/totalStudents, 1) + "%  ("+noAttendStudents+" "+i18n.t("students")+")");
 	  	}
-	  	if(opts.mean!=false) {d3.select(selector).append("p").text( lng["mean"] + d3.round(d3.mean(data.students, valuesInsideDomainOnly(data)), 2));}
-	  	if(opts.extent!=false) {d3.select(selector).append("p").text( lng["extent"] + d3.extent(data.students, valuesInsideDomainOnly(data)));}
-	  	if(opts.median!=false) {d3.select(selector).append("p").text( lng["median"] + d3.round(d3.median(data.students, valuesInsideDomainOnly(data)), 2));}
+	  	if(opts.mean!=false) {d3.select(selector).append("p").text( lng["mean"] + d3.round(d3.mean(data.students, util.valuesInsideDomainOnly(data)), 2));}
+	  	if(opts.extent!=false) {d3.select(selector).append("p").text( lng["extent"] + d3.extent(data.students, util.valuesInsideDomainOnly(data)));}
+	  	if(opts.median!=false) {d3.select(selector).append("p").text( lng["median"] + d3.round(d3.median(data.students, util.valuesInsideDomainOnly(data)), 2));}
 	};
 
 	var histogramVisualization = function(data, selector, opts) {
@@ -187,7 +187,6 @@
 			  x2.domain([d.x, d.x+1]);
 			  sideChart.select(".x.axis").call(xAxis2);
 			  updateSideChart(sideValues.range([d.x, d.x+1])(d));
-			  console.log("d: "+d);
 			  updateTable(d);
 			}
 		      })
@@ -308,17 +307,14 @@
 		    var sbar = sideChart.selectAll(".bar")
 		        .data(sideValues);
 
-		    // UPDATE - Update old elements as needed.
-
 		    // ENTER - Create new elements as needed.
 		    sbar.enter().append("g")
-		      .attr("transform", function(d) { return "translate(" + x2(d.x+0.5) + ",0)"; });
+		      .attr("transform", function(d) { return "translate(" + x2(d.x+0.5) + ",0)"; })
+		      .append("rect")
+		        .attr("x", 1- barWidth2/2)
+		        .attr("width", barWidth2 -2);
 
-		    sbar.append("rect")
-		      .attr("x", 1- barWidth2/2)
-		      .attr("width", barWidth2 -2);
-
-		    // ENTER + UPDATE
+		    // UPDATE - Update new and old elements
 		    sbar.attr("class", hilightStudent(data));
 		    sbar.select("rect")
 		      .attr("y", function(d) { return y(d.y); })
@@ -338,10 +334,9 @@
 
 		/** Details Table **/
 		if(opts.table!=false) {
-
 		  var table = d3.select(selector).append("table").attr("class", "table table-hover table-bordered table-condensed");
 
-		  var columns = opts.tableColumns || ["grade", "name"];
+		  var columns = opts.tableColumns || ["ID", "photo", "name", "grade"];
 
 		  var theader = table.append("thead");
 		  theader.append("tr").selectAll("th")
@@ -356,31 +351,25 @@
 		    var tr = tbody.selectAll("tr")
 		        .data(values);
 
-		    // UPDATE - Update old elements as needed.
-
 		    // ENTER - Create new elements as needed.
 		    tr.enter().append("tr");
 
-		    // ENTER + UPDATE
+		    // UPDATE - Update new and old elements
 		    tr.selectAll("td")
 		      .data( function(row) { return columns.map(function(column) {return {column: column, value: row[column]};}); })
 		    .enter().append("td");
 
 		    tr.selectAll("td")
-				.text(function(d) { console.log("updating cell: "+d); return d.value; });
-
+		      .html(function(d) { return d.column=="photo"? "<img src='"+d.value+"' width='25px' alt='photo'/>" : d.value; });
 
 		    // EXIT - Remove old elements as needed.
 		    tr.exit().remove();
-
-		    tr.sort(function(a,b) { return b.grade - a.grade; })
-
 		  }
 
 		  updateTable(data.students);
-
 		}
 	};
+
 
 	var multipleDonutsVisualization = function(data, selector, opts) {
 		var lng = i18n.t("donuts", { returnObjectTrees: true });

@@ -13,7 +13,7 @@
     "min-grade": "Nota mínima",
     "self-id": "Você está aqui",
     "y-label": "Frequência",
-    "table-columns": {"name":"Nome", "grade":"Nota"}
+    "table-columns": {"ID":"ID", "name":"Nome", "grade":"Nota", "photo":"Foto"}
   },
   "donuts": {
     "not-evaluated-grades": "Não Avaliados",

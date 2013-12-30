@@ -13,7 +13,7 @@
     "min-grade": "Minimum grade",
     "self-id": "You",
     "y-label": "Frequency",
-    "table-columns": {"name": "Name", "grade": "Grade"}
+    "table-columns": {"ID":"ID", "name": "Name", "grade": "Grade", "photo":"Photo"}
   },
   "donuts": {
     "not-evaluated-grades": "Not Evaluated",
