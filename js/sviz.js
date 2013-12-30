@@ -165,7 +165,7 @@
 		    .data(values)
 		  .enter().append("g")
 		    .attr("class", hilightStudent(data))
-		    .attr("title", function(d){ if(opts.tooltip!=false) return d.y + "%"; })
+		    .attr("title", function(d){ if(opts.tooltip!=false && opts.tipNumbers!='none') {return (opts.tipNumbers=='count' ? d.y : (d3.round((d.y*100/data.students.length),2)+"%"));} })
 		    .attr("transform", function(d) { return "translate(" + x(d.x+0.5) + "," + y(d.y) + ")"; })
 		    .on('mouseover', function (d) {
 		      if(opts.details!=false) {
@@ -183,16 +183,18 @@
 		  .attr("width", barWidth -2)
 		  .attr("height", function(d) { return height - y(d.y); });
 
-		/* number with count inside bars */
-		bar.append("text")
-		  .attr("dy", ".75em")
-		  .attr("y", 6)
-		  .attr("x", 0)
-		  .attr("text-anchor", "middle")
-		  .text(function(d) { if(d.y!=0) {return d.y;} });
+		/* number inside bars */
+		if(opts.barNumbers!='none') {
+		  bar.append("text")
+		    .attr("dy", ".75em")
+		    .attr("y", 6)
+		    .attr("x", 0)
+		    .attr("text-anchor", "middle")
+		    .text(function(d) { if(d.y!=0) {return (opts.barNumbers=='percent' ? (d3.round((d.y*100/data.students.length))+"%") : d.y);} });
+		}
 
 		/* Tooltip */
-		if(opts.tooltip!=false) {
+		if(opts.tooltip!=false && opts.tipNumbers!='none') {
 		  $(".tip").qtip({
 		    style: "qtip-tipsy",
 		    position: { my: 'bottom middle', at: 'top middle'}

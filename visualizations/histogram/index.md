@@ -28,6 +28,12 @@ opts:
   - - tooltip
     - true
     - show tooltip
+  - - barNumbers
+    - count
+    - "'none', 'count' or 'percent'"
+  - - tipNumbers
+    - percent
+    - "'none', 'count' or 'percent'"
 ---
 
 
