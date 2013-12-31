@@ -82,6 +82,13 @@
 
 		var lng = i18n.t("histogram", { returnObjectTrees: true });
 
+		/* Subject Selection */
+		var subjectSel = d3.select(selector).append("div")
+		  .append("select")
+		    .attr("class", "pull-right");
+		subjectSel.append("option").attr("value", "example.json").text("Computação Gráfica");
+		subjectSel.append("option").attr("value", "example2.json").text("Sistemas Operativos");
+
 		/* Margins and SVG container */
 		var margin = {top: 10, right: 20, bottom: 20, left: 30}, xgap = 50,
 			width1 = 560 - margin.left - xgap/2,
@@ -129,11 +136,11 @@
 
 		var barWidth = x(1)-x(0);
 
-		var values = d3.layout.histogram()
+		var valueBinning = d3.layout.histogram()
 		  .range([data.minGrade-0.5, data.maxGrade+0.5])
 		  .bins(data.maxGrade+1)
-		  .value(function(d) { return d.grade; })
-		  (data.students);
+		  .value(function(d) { return d.grade; });
+		var values = valueBinning(data.students);
 		values.forEach(sortBinElements);
 
 		y.domain([0, d3.max(values, function(d) { return d.y; })])
@@ -325,7 +332,7 @@
 		    .bins(11)
 		    .value(function(d) { return d.grade; });
 
-		  updateSideChart(sideValues(data.students));
+		  updateSideChart(sideValues([]));
 		}
 
 		/** Details Table **/
@@ -363,6 +370,37 @@
 
 		  updateTable(data.students);
 		}
+
+		subjectSel.on("change", function change() {
+		  d3.json(this.options[this.selectedIndex].value, function(newData) {
+		    //animation
+		    var duration = 750;
+		    var dstep = 25;
+		    var delay = function(d, i) { return i * dstep; };
+		    var transition = svg.transition().duration(duration+dstep*21);
+		    //change min & max grade?
+		    // resetting scales and bins
+		    values = valueBinning(newData.students);
+		    values.forEach(sortBinElements);
+		    y.domain([0, d3.max(values, function(d) { return d.y; })]);
+		    transition.select(".y.axis").call(yAxis);
+		    //update minRequiredGrade
+		    transition.select(".minRect").attr("width", x(newData.minRequiredGrade));
+		    transition.select(".line").attr("transform", function(d) { return "translate(" + x(newData.minRequiredGrade) + ", 0)"; })
+		    //selfID is supposed to be the same
+		    //changing bars around
+		    var bar = svg.selectAll(".bar")
+		        .data(values).transition().delay(delay).duration(duration)
+		      .attr("class", hilightStudent(newData))
+		      .attr("transform", function(d) { return "translate(" + x(d.x+0.5) + ", "+y(d.y)+")"; });
+		    bar.select("rect")
+		        .attr("height", function(d) { return height - y(d.y); });
+		    bar.select("text").text(function(d) { if(d.y!=0) {return (opts.barNumbers=='percent' ? (d3.round((d.y*100/data.students.length))+"%") : d.y);} });
+		    //updating detailed views
+		    updateSideChart(sideValues([]));
+		    updateTable(newData.students);
+		  })
+		});
 	};
 
 
