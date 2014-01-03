@@ -7,11 +7,13 @@ baseurl: /sviz
 visualizations:
   - name: Progress
     path: progress
+  - name: Overall Statistics
+    path: statistics2
   - name: Course Donuts
     path: course
   - name: Histogram
     path: histogram
-  - name: Statistics
+  - name: Evaluation Statistics
     path: statistics
   - name: BoxPlot
     path: boxplot

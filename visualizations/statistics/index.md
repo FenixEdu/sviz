@@ -1,11 +1,11 @@
 ---
 layout: visualization
 path: statistics
-title: Statistics
-description: A text-based presentation of useful statistical values.
-call: showStatistics
+title: Evaluation Statistics
+description: A text-based presentation of useful statistical values for an evaluation.
+call: showEvaluationStatistics
 call_args: ""
-sample_call: SViz.loadViz("showStatistics", "data.json", "#visualization");
+sample_call: SViz.loadViz("showEvaluationStatistics", "data.json", "#visualization");
 opts:
   - - "[measure]"
     - "true for all measures [total, approved, noattend, extent, mean, median]"

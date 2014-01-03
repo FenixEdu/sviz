@@ -57,10 +57,10 @@
 	};
 
 
-	var statisticsVisualization = function(data, selector, opts) {
+	var evaluationStatisticsVisualization = function(data, selector, opts) {
 		if(!opts) var opts={};
 		//if opts.help
-		var lng = i18n.t("statistics", { returnObjectTrees: true });
+		var lng = i18n.t("evaluation-statistics", { returnObjectTrees: true });
 	 	d3.select(selector).append("h4").text(lng["title"]);
 	 	var totalStudents = data.students.length;
 	 	var approvedStudents = d3.sum(data.students, function(el) {return (el.grade >= data.minRequiredGrade);});
@@ -807,12 +807,23 @@
 		});
 
 	};
-	
+
+	var overallStatisticsVisualization = function(data, selector, opts) {
+		if(!opts) var opts={};
+		//if opts.help
+		var lng = i18n.t("overall-statistics", { returnObjectTrees: true });
+		d3.select(selector).append("h4").text(lng["title"]);
+		if(opts.mean!=false) {d3.select(selector).append("p").text( lng["mean"] + data.mean )}
+		if(opts.extent!=false) {d3.select(selector).append("p").text( lng["extent"] + data.minGrade + " , " + data.maxGrade )}
+		if(opts.approved!=false) {d3.select(selector).append("p").text( lng["approved"] + data.approved )}
+		if(opts.flunked!=false) {d3.select(selector).append("p").text( lng["flunked"] + data.flunked )}
+		if(opts.noattend!=false) {d3.select(selector).append("p").text( lng["no-attends"] + data.notAttended )}
+	};
 
 	//VISUALIZATIONS TO EXPORT
 	var visualizations = {
-		showStatistics : function(data, selector, opts) {
-			statisticsVisualization(data, selector, opts);
+		showEvaluationStatistics : function(data, selector, opts) {
+			evaluationStatisticsVisualization(data, selector, opts);
 		},
 		showHistogram: function(data, selector, opts) {
 			histogramVisualization(data, selector, opts);
@@ -831,7 +842,10 @@
 		},
 		showStudentProgress : function(data, selector, opts) {
 			progressBars(data, selector, opts);
-		}
+		},
+		showOverallStatistics : function(data, selector, opts) {
+			overallStatisticsVisualization(data, selector, opts);
+		},
 	};
 
 	SViz.init = function(params) {

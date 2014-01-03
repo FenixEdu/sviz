@@ -1,5 +1,5 @@
 {
-  "statistics": {
+  "evaluation-statistics": {
     "title": "Statistic Measures",
     "total-students": "Total Students: ",
     "approved": "Approved: ",
@@ -28,5 +28,13 @@
     "5-9": "5-9",
     "10-14": "10-14",
     "15-20": "15-20"
+  },
+  "overall-statistics": {
+    "title": "Statistic Measures",
+    "approved": "Approved: ",
+    "flunked": "Flunked: ",
+    "no-attends": "Did not Attend: ",
+    "mean": "Mean: ",
+    "extent": "Min & Max: "
   }
 }

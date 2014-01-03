@@ -1,0 +1,7 @@
+{ "mean": 14.31,
+  "minGrade": 11,
+  "maxGrade": 17,
+  "approved": 10,
+  "flunked": 9,
+  "notAttended": 6
+}

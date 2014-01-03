@@ -16,7 +16,7 @@ This visualization provides a quick insight about all the student courses, showi
         <div class="caption" style="padding: 0px 9px">
           <h4>{{ item.name }}</h4>
         </div>
-        <img class="img-responsive img-thumbnail" src="{{ site.baseurl }}/visualizations/{{ item.path }}/thumbnail.png" alt="{{ item.name }} Visualization">
+        <img class="img-responsive img-thumbnail" src="{{ site.baseurl }}/visualizations/{{ item.path }}/thumbnail.png" style="width:198px, height:168px" alt="{{ item.name }} Visualization">
       </div>
     </div>
   </a>
