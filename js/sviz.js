@@ -18,15 +18,25 @@
 	};
 
 	var log = {
+		info : function(msg, obj) {
+			console.log("[SViz Info] - " + msg);
+			if(typeof obj !== "undefined") {
+				console.log(obj);
+			}
+		},
 		debug : function(msg, obj) {
 			if(DEBUG_MODE) {
 				console.log("[SViz Debug] - " + msg);
-				console.log(obj);
+				if(typeof obj !== "undefined") {
+					console.log(obj);
+				}			
 			}
 		},
 		error : function(msg, obj) {
 			console.log("[SViz Error] - " + msg);
-			console.log(obj);
+			if(typeof obj !== "undefined") {
+				console.log(obj);
+			}
 		}
 	};
 
@@ -56,6 +66,59 @@
 		}
 	};
 
+
+	/**
+	 * Definition of Visualization Object to be Extended
+	 **/
+
+	var Visualization = {};
+	Visualization.extend = function(extension) {
+		var self = {};
+		var visUpdate = (typeof extension.update === "function") ? extension.update : function() {
+			log.info("No method to update this visualization was defined.");
+		};
+		$.extend(self, extension);
+
+		var update = function(newData, opts) {
+			if(typeof newData === "object") {
+				visUpdate(newData, opts);
+			} else {
+				d3.json(newData, function(newData) {
+					visUpdate(newData, opts);
+				});
+			}
+		};
+
+		return function(data, selector, opts) {
+			self.initialize(data, selector, opts);
+			self.render();
+			debugger;
+			return { "update": update };
+		};
+
+	};
+
+	/**
+	 * Visualizations Definition
+	 **/
+
+	var vis = Visualization.extend({
+
+		initialize: function(data, selector, opts) {
+			console.log("I'm initializing");
+			this.data = data;
+		},
+
+		render: function() {
+			var data = this.data;
+			console.log("Im rendering");
+		},
+
+		update: function(newData, opts) {
+			console.log("Im updating");
+		}
+
+	});
 
 	var evaluationStatisticsVisualization = function(data, selector, opts) {
 		if(!opts) var opts={};
@@ -184,6 +247,13 @@
 		    .on('mouseover', function (d) {
 		      if(opts.details!=false) {
 		        x2.domain([d.x, d.x+1]);
+		        xAxis2.tickFormat(function(p) { if((p === d.x || p === d.x+1) && (p >= 0 && p <= 20) ) { return p; } else { return d3.format("d")(p); } });
+
+		        var min = d.x >= 0 ? d.x : 0;
+		        var max = d.x+1 >= 20 ? 20.1 : d.x+1.1;
+		        xAxis2.tickValues(d3.range(min-0.5, max+0.5, 0.1));
+
+
 		        sideChart.select(".x.axis").call(xAxis2);
 		        updateSideChart(sideValues.range([d.x, d.x+1])(d));
 		      }
@@ -301,7 +371,7 @@
 		  /* x Axis */
 		  var xAxis2 = d3.svg.axis()
 		    .scale(x2)
-		    .ticks(10)
+		    .ticks(11)
 		    .orient("bottom");
 
 		  sideChart.append("g")
@@ -315,10 +385,10 @@
 		    // DATA JOIN - Join new data with old elements, if any.
 		    var sbar = sideChart.selectAll(".bar")
 		      .data(sideValues);
-
+		      debugger;
 		    // ENTER - Create new elements as needed.
 		    sbar.enter().append("g")
-		      .attr("transform", function(d) { return "translate(" + x2(d.x+0.5) + ",0)"; })
+		      .attr("transform", function(d) { return "translate(" + x2(d.x) + ",0)"; })
 		      .append("rect")
 		        .attr("x", 1- barWidth2/2)
 		        .attr("width", barWidth2 -2);
@@ -425,388 +495,454 @@
 	};
 
 
-	var multipleDonutsVisualization = function(data, selector, opts) {
-		var lng = i18n.t("donuts", { returnObjectTrees: true });
+	var multipleDonutsVisualization = Visualization.extend({
 
-		var ratio = 3/4;
-		var defaultRadius = 50;
-		var defaultInnerRaidus = 30;
+		initialize: function(data, selector, opts) {
+			this.data = data;
+			this.selector = selector;
+			this.opts = opts;
+		},
 
-		var radius = opts ? opts.radius || defaultRadius : defaultRadius;
-		var innerRadius = opts ? opts.innerRadius || defaultInnerRaidus : defaultInnerRaidus;
+		render: function() {
+			var data = this.data;
+			var selector = this.selector;
+			var opts = this.opts;
 
-		var width = opts ? opts.width || $(selector).width() :  $(selector).width();
-		var height = opts ? opts.height || (width*ratio) :  (width*ratio);
+			var lng = i18n.t("donuts", { returnObjectTrees: true });
+			log.debug("Invoked Multiple Donuts Visualization with opts", opts);
 
-		var arc = d3.svg.arc()
-		    .outerRadius(radius)
-		    .innerRadius(innerRadius);
+			var ratio = 3/4;
+			var defaultRadius = 60;
+			var defaultInnerRaidus = 40;
 
-		var pie = d3.layout.pie()
-		    .sort(null)
-		    .value(function(d) { return d.population; });
+			var radius = opts ? opts.radius || defaultRadius : defaultRadius;
+			var innerRadius = opts ? opts.innerRadius || defaultInnerRaidus : defaultInnerRaidus;
 
-		var domain = ["positive-grades", "negative-grades", "not-evaluated-grades"];
+			var width = opts ? opts.width || $(selector).width() :  $(selector).width();
+			var height = opts ? opts.height || (width*ratio) :  (width*ratio);
 
-		  data.forEach(function(d) {
-     		d.total = d["not-evaluated-grades"]+d["negative-grades"]+d["positive-grades"];
-		    d.values = domain.map(function(name) {
-		      var perc = d3.round((+d[name])/(+d["total"])*100,1)+"%";
-		      return { name: name, population: +d[name], perc: perc};
-		    });
-		  });
+			var showLegend = opts ? opts.showLegend === true : true;
+			var legendSelector = opts ? opts.legendSelector || selector : selector;
 
-		  var legend = d3.select(selector).append("svg")
-		      .attr("class", "legend-text")
-		      .attr("width", 150)
-		      .attr("height", radius * 2)
-		    .selectAll("g")
-		      .data(domain.slice().reverse())
-		    .enter().append("g")
-		      .attr("transform", function(d, i) { return "translate("+(0)+"," + i * 20 + ")"; });
+			var arc = d3.svg.arc()
+			    .outerRadius(radius)
+			    .innerRadius(innerRadius);
 
-		  legend.append("rect")
-		      .attr("width", 12)
-		      .attr("height", 12)
-		      .attr("class", function(d) { return "donut-"+d; });
+			var pie = d3.layout.pie()
+			    .sort(null)
+			    .value(function(d) { return d.population; });
 
-		  legend.append("text")
-		      .attr("x", 16)
-		      .attr("y", 6)
-		      .attr("dy", ".35em")
-		      .text( function(d) { return lng[d]; });
+			data.entries.forEach(function(d) {
+				var total = 0;
+				$.each(data.domain, function(i, el) {
+					total += +d[el];
+				});
+				d.total = total;
+				d.values = data.domain.map(function(name) {
+					var perc = d3.round((+d[name])/(+d["total"])*100,1)+"%";
+					return { name: name, population: +d[name], total: total, perc: perc};
+				});
+			});
 
-		  var svg = d3.select(selector).selectAll(".donut")
-		      .data(data)
-		    .enter().append("svg")
-		      .attr("class", "donut")
-		      .attr("width", radius * 2)
-		      .attr("height", radius * 2)
-		    .append("g")
-		      .attr("transform", "translate(" + radius + "," + radius + ")");
+			if(showLegend) {
+				var legend = d3.select(legendSelector).append("svg")
+				  .attr("class", "legend-text")
+				  .attr("width", 150)
+				  .attr("height", radius * 2)
+					.selectAll("g")
+					  .data(data.domain.slice().reverse())
+					.enter().append("g")
+					  .attr("transform", function(d, i) { return "translate("+(0)+"," + i * 20 + ")"; });
 
-		  svg.selectAll(".donut-arc")
-		      .data(function(d) { return pie(d.values); })
-		    .enter().append("path")
-		      .attr("title", function(d) { return d.data.perc; })
-		      .attr("class", function(d) { return "tip donut-arc donut-"+d.data.name; })
-		      .attr("d", arc);
+				  legend.append("rect")
+				      .attr("width", 12)
+				      .attr("height", 12)
+				      .attr("class", function(d) { return "donut-"+d; });
 
-		  svg.append("text")
-        	  .attr("dy", ".35em")
-        	  .attr("class", "donut-center-text")
-        	  .style("text-anchor", "middle")
-        	  .text(function(d) { return d.acronym; });
-
-		  $(".tip").qtip({
-		    style: "qtip-tipsy",
-		    position: {
-		      target: 'mouse',
-		      adjust: { x: 13, y: 15 }}
-		  });
-	};
-
-	var boxPlot = function(data, selector, opts) {
-		var boxPlot = util.computeMinMaxAndQuartiles(data.grades, "grade");
-
-		var ratio = 3/4;
-		var defaultBoxWidth = 20;
-		var defaultWidth = defaultBoxWidth*5;
-		var defaultHeight = 300;
-
-		var width = opts ? opts.width || defaultWidth : defaultWidth;
-		var height = opts ? opts.height || defaultHeight : defaultHeight;
-		var boxWidth = opts ? opts.boxWidth || defaultBoxWidth : defaultBoxWidth;
-
-		var svg = d3.select(selector)
-					.append("svg")
-				      .attr("width", width)
-				      .attr("height", height);
-
-		svg.append("line")
-			.attr("class", "boxplot-line")
-			.attr("x1", (width/2))
-			.attr("x2", (width/2))
-			.attr("y1", 0)
-			.attr("y2", height);
-
-		var computeRelativeY = function(realY, realMinY, realMaxY) {
-			return height - ((height * realY) / (realMaxY - realMinY));
-		};
-
-		var drawQuantileLine = function(svg, yValue) {
-			svg.append("line")
-				.attr("class", "boxplot-quantile-line")
-				.attr("x1", (width/2)-(boxWidth/2))
-				.attr("x2", (width/2)+(boxWidth/2))
-				.attr("y1", yValue)
-				.attr("y2", yValue);
-		}
-
-		var writeText = function(svg, text, yValue, clazz) {
-			svg.append("text")
-				.attr("class", "boxplot-quantile-text "+clazz)
-				.attr("x", 0)
-				.attr("y", yValue)
-				.text(text);
-		};
-
-		var q1y = computeRelativeY(boxPlot.q1, boxPlot.min, boxPlot.max);
-		var q2y = computeRelativeY(boxPlot.q2, boxPlot.min, boxPlot.max);
-		var q3y = computeRelativeY(boxPlot.q3, boxPlot.min, boxPlot.max);
-
-		//appends rectangle separating quantiles q3 and q1
-		svg.append("rect")
-			.attr("stroke", "black")
-			.attr("fill", "white")
-			.attr("x", (width/2)-(boxWidth/2))
-			.attr("y", q3y)
-			.attr("width", boxWidth)
-			.attr("height", q1y - q3y);
-
-		//appends max line
-		drawQuantileLine(svg, 0);
-
-		//appends median line
-		drawQuantileLine(svg, q2y);
-
-		//appends min line
-		drawQuantileLine(svg, height);
-
-		writeText(svg, boxPlot.max, 10, "boxplot-max-text");
-		writeText(svg, boxPlot.q3, q3y+5, "boxplot-q3-text");
-		writeText(svg, boxPlot.q2, q2y+5, "boxplot-q2-text");
-		writeText(svg, boxPlot.q1, q1y+5, "boxplot-q1-text");
-		writeText(svg, boxPlot.min, height, "boxplot-min-text");	
-	};
-
-	var sunburst = function(data, selector, opts) {
-
-		var defaultWidth = 300;
-		var defaultHeight = 250;
-
-		var width = opts ? opts.width || defaultWidth : defaultWidth;
-		var height = opts ? opts.height || defaultHeight : defaultHeight;
-		var radius = Math.min(width, height) / 2;
-
-		var totalSize = data.marksheet.grades.length;
-
-		var lng = i18n.t("sunburst", { returnObjectTrees: true });
-
-		var injectOwnGradeFlag = function(json, isDatum) {
-			if(isDatum) {
-				json.studentGrade = true;
+				  legend.append("text")
+				      .attr("x", 16)
+				      .attr("y", 6)
+				      .attr("dy", ".35em")
+				      .text( function(d) { return lng[d]; });
 			}
-		};
 
-		var buildGradeHierarchy = function(data, studentId) {
-			var onlyFlunked = false;
-			var root = { name: "root", children : [] };
-			var approved = { name: "approved", children: [] };
-			var flunked = { name: "flunked", children: [] };
-			var notEvaluated = { name: "not-evaluated", children: [] };
-			var a1h = { name: "10-14", children: [] };
-			var a2h = { name: "15-20", children: [] };
-			var f1h = { name: "0-4", children: [] };
-			var f2h = { name: "5-9", children: [] };
-			$.each(data, function(i, datum) {
-				var grade = datum.grade;
-				var isStudentGrade = datum.id === studentId;
-				if(grade === "NE") {
-					notEvaluated.children.push(datum);
-					injectOwnGradeFlag(notEvaluated, isStudentGrade);
-				} else if(grade === "RE" || d3.round(grade,0) < 10) {
-					if(grade === "RE") {
-						onlyFlunked = true;
-						flunked.children.push(datum);
-						injectOwnGradeFlag(flunked, isStudentGrade);
-					} else if(d3.round(grade,0) <= 4) {
-						injectOwnGradeFlag(f1h, isStudentGrade);
-						f1h.children.push(datum);
-					} else {
-						injectOwnGradeFlag(f2h, isStudentGrade);
-						f2h.children.push(datum);
-					}
-				} else {
-					if(d3.round(grade,0) <= 14) {
-						injectOwnGradeFlag(a1h, isStudentGrade);
+			var svg = d3.select(selector).selectAll(".donut")
+				  .data(data.entries)
+				.enter().append("svg")
+				  .attr("class", "donut")
+				  .attr("width", radius * 2)
+				  .attr("height", radius * 2)
+				.append("g")
+				  .attr("transform", "translate(" + radius + "," + radius + ")");
 
-						a1h.children.push(datum);
-					} else {
-						injectOwnGradeFlag(a2h, isStudentGrade);
+			svg.selectAll(".donut-arc")
+			  .data(function(d) { return pie(d.values); })
+			.enter().append("path")
+			  .attr("title", function(d) { return d.data.perc+" - ("+d.data["population"]+"/"+d.data["total"]+")"; })
+			  .attr("class", function(d) { return "tip donut-arc donut-"+d.data.name; })
+			  .attr("d", arc);
 
-						a2h.children.push(datum);
-					}
+			svg.append("text")
+			  .attr("dy", ".35em")
+			  .attr("class", "donut-center-text tip")
+			  .attr("title", function(d) { return d.description; })
+			  .style("text-anchor", "middle")
+			  .text(function(d) { return d.text; });
+
+			$(".tip").qtip({
+				style: "qtip-tipsy",
+				position: {
+				  target: 'mouse',
+				  adjust: { x: 15, y: 15 }
 				}
 			});
-			a1h.size = a1h.children.length;
-			a2h.size = a2h.children.length;
-			f1h.size = f1h.children.length;
-			f2h.size = f2h.children.length;
-			a1h.data = a1h.children;
-			a1h.data = a2h.children;
-			f1h.data = f1h.children;
-			f2h.data = f2h.children;
-			a1h.children = undefined;
-			a2h.children = undefined;
-			f1h.children = undefined;
-			f2h.children = undefined;
-			approved.children.push(a2h);
-			approved.children.push(a1h);
-			approved.size = a1h.size + a2h.size;
-			if(onlyFlunked) {
-				flunked.size = flunked.children.length;
-				flunked.children = undefined;
-			} else {
-				flunked.children.push(f2h);
-				flunked.children.push(f1h);
-				flunked.size = f1h.size + f2h.size;
+		}
+
+	});
+
+	var boxPlot = Visualization.extend({
+
+		initialize: function(data, selector, opts) {
+			this.data = data;
+			this.selector = selector;
+			this.opts = opts;
+		},
+
+		render: function() {
+			var data = this.data;
+			var selector = this.selector;
+			var opts = this.opts;
+
+			var boxPlot = util.computeMinMaxAndQuartiles(data.grades, "grade");
+
+			var ratio = 3/4;
+			var defaultBoxWidth = 20;
+			var defaultWidth = defaultBoxWidth*5;
+			var defaultHeight = 300;
+
+			var width = opts ? opts.width || defaultWidth : defaultWidth;
+			var height = opts ? opts.height || defaultHeight : defaultHeight;
+			var boxWidth = opts ? opts.boxWidth || defaultBoxWidth : defaultBoxWidth;
+
+			var svg = d3.select(selector)
+						.append("svg")
+					      .attr("width", width)
+					      .attr("height", height);
+
+			svg.append("line")
+				.attr("class", "boxplot-line")
+				.attr("x1", (width/2))
+				.attr("x2", (width/2))
+				.attr("y1", 0)
+				.attr("y2", height);
+
+			var computeRelativeY = function(realY, realMinY, realMaxY) {
+				return height - ((height * realY) / (realMaxY - realMinY));
+			};
+
+			var drawQuantileLine = function(svg, yValue) {
+				svg.append("line")
+					.attr("class", "boxplot-quantile-line")
+					.attr("x1", (width/2)-(boxWidth/2))
+					.attr("x2", (width/2)+(boxWidth/2))
+					.attr("y1", yValue)
+					.attr("y2", yValue);
 			}
 
-			notEvaluated.size = notEvaluated.children.length;
-			notEvaluated.children = undefined;
-			root.children.push(approved);
-			root.children.push(flunked);
-			root.children.push(notEvaluated);
-			return root;
-		};
-
-		var vis = d3.select(selector).append("svg")
-			.attr("width", width)
-			.attr("height", height)
-			.append("g")
-			.attr("id", "container")
-			.attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
-
-		var partition = d3.layout.partition()
-		    .size([2 * Math.PI, radius * radius])
-		    .value(function(d) { return d.size; });
-
-		var arc = d3.svg.arc()
-		    .startAngle(function(d) { return d.x; })
-		    .endAngle(function(d) { return d.x + d.dx; })
-		    .innerRadius(function(d) { return Math.sqrt(d.y); })
-		    .outerRadius(function(d) { return Math.sqrt(d.y + d.dy); });
-
-		var overarc = d3.svg.arc()
-		  .startAngle(function(d) { return d.x+5; })
-		    .endAngle(function(d) { return d.x + d.dx+5; })
-		    .innerRadius(function(d) { return Math.sqrt(d.y); })
-		    .outerRadius(function(d) { return Math.sqrt(d.y + d.dy); });
-
-	    vis.append("circle")
-	      .attr("r", radius)
-	      .style("opacity", 0);
-
-	    var studentD = undefined;
-	    var json = buildGradeHierarchy(data.marksheet.grades, data.studentId);
-		var nodes = partition.nodes(json);
-		var path = vis.data([json]).selectAll("path")
-	      .data(nodes)
-	      .enter().append("path")
-	      .attr("display", function(d) { return d.depth ? null : "none"; })
-	      .attr("d", arc)
-	      .attr("title", function(d) { return d.size+"/"+totalSize; })
-	      .attr("class", function(d) {
-	      	var classes = "sunburst-path tip sunburst-path-"+d.name;
-	      	if(d.studentGrade) {
-				studentD = d;
-	      		classes = classes+" sunburst-own-grade";
-	      	}
-	      	return classes;
-	      })
-	      .attr("fill-rule", "evenodd")
-	      .style("opacity", function(d) { return d.studentGrade?1:0.3; })
-	      .on("mouseover", function(d) {
-	      	$(".sunburst-path").attr("style", "opacity: 0.3");
-	      	$(this).attr("style", "opacity: 1");
-	      	$(".sunburst-percentage", selector).text(d3.round((d.value/totalSize)*100, 1)+"%");
-	      	$(".sunburst-text", selector).text(lng[d.name]);
-	      })
-	      .on("mouseout", function(d) {
-	      	$(this).attr("style", "opacity: 0.3");
-	      	$(".sunburst-own-grade").attr("style", "opacity: 1");
-	      	$(".sunburst-percentage", selector).text(d3.round((studentD.value/totalSize)*100, 1)+"%");
-	      	$(".sunburst-text", selector).text(lng[studentD.name]);
-	      });
-
-		vis.append("text")
-			.attr("class", "sunburst-percentage")
-			.attr("text-anchor", "middle");
-		
-		vis.append("text")
-			.attr("y", 20)
-			.attr("class", "sunburst-text")
-			.attr("text-anchor", "middle");
-	
-		$(".sunburst-percentage", selector).text(d3.round((studentD.value/totalSize)*100, 1)+"%");
-      	$(".sunburst-text", selector).text(lng[studentD.name]);
-
-		$(".tip").qtip({
-			style: "qtip-tipsy",
-			position: {
-            	target: 'mouse',
-            	adjust: { x: 10, y: 10 }
-         	}
-   		});
-
-	};
-
-	var progressBars = function(data, selector, opts) {
-		var defaultWidth = 400;
-		var defaultHeight = 400;
-
-		var width = opts ? opts.width || defaultWidth : defaultWidth;
-		var height = opts ? opts.height || defaultHeight : defaultHeight;
-
-		var svgContainer = d3.select(selector).append("svg")
-							.attr("width", width)
-							.attr("height", height);
-
-		var createBar = function(container, x, y, value, maxValue, barHeight, wrappingBarHeight, text, innerBarClass, outerBarClass) {
-
-			var barContainer = container
-				.append("g")
-				.attr("transform", "translate("+x+","+y+")")
-				.attr("y", y);
-
-				//outer bar
-				barContainer.append("rect")
+			var writeText = function(svg, text, yValue, clazz) {
+				svg.append("text")
+					.attr("class", "boxplot-quantile-text "+clazz)
 					.attr("x", 0)
-					.attr("y", 0)
-					.attr("width", width)
-					.attr("height", wrappingBarHeight)
-					.attr("class", "progress-bar progress-outer-bar "+outerBarClass);
-
-				//inner bar
-				barContainer.append("rect")
-					.attr("x", 0)
-					.attr("y", ((wrappingBarHeight - barHeight)/2))
-					.attr("width", (value/maxValue)*width)
-					.attr("height", barHeight)
-					.attr("class", "progress-bar progress-inner-bar "+innerBarClass)
-					.attr("data-powertip", function(d) { return value+" of "+maxValue; });
-
-				//bar text
-				barContainer.append("text")
-					.attr("x", -50)
-					.attr("y", (wrappingBarHeight/2)+5)
+					.attr("y", yValue)
 					.text(text);
+			};
 
-			return barContainer;
+			var q1y = computeRelativeY(boxPlot.q1, boxPlot.min, boxPlot.max);
+			var q2y = computeRelativeY(boxPlot.q2, boxPlot.min, boxPlot.max);
+			var q3y = computeRelativeY(boxPlot.q3, boxPlot.min, boxPlot.max);
+
+			//appends rectangle separating quantiles q3 and q1
+			svg.append("rect")
+				.attr("stroke", "black")
+				.attr("fill", "white")
+				.attr("x", (width/2)-(boxWidth/2))
+				.attr("y", q3y)
+				.attr("width", boxWidth)
+				.attr("height", q1y - q3y);
+
+			//appends max line
+			drawQuantileLine(svg, 0);
+
+			//appends median line
+			drawQuantileLine(svg, q2y);
+
+			//appends min line
+			drawQuantileLine(svg, height);
+
+			writeText(svg, boxPlot.max, 10, "boxplot-max-text");
+			writeText(svg, boxPlot.q3, q3y+5, "boxplot-q3-text");
+			writeText(svg, boxPlot.q2, q2y+5, "boxplot-q2-text");
+			writeText(svg, boxPlot.q1, q1y+5, "boxplot-q1-text");
+			writeText(svg, boxPlot.min, height, "boxplot-min-text");	
 		}
-		//creating main progress bar
-		createBar(svgContainer, 50, 0, data["total-credits"], data["max-credits"], 20, 40, "Total", "progress-main", "progress-main");
+	});
 
-		//create years progress bars
-		$.each(data["years"], function(i, year) {
-			var bar = createBar(svgContainer, 50, ((i+1)*25)+20, year["credits"], data["max-credits"], 10, 20, year["year"]+" Ano", "progress-year", "progress-year");
-			bar.on("click", function() {
-				console.log(year["completed-courses"]);
+	var sunburst = Visualization.extend({
+
+		initialize: function(data, selector, opts) {
+			this.data = data;
+			this.selector = selector;
+			this.opts = opts;
+		},
+
+		render: function() {
+			var data = this.data;
+			var selector = this.selector;
+			var opts = this.opts;
+			var defaultWidth = 300;
+			var defaultHeight = 250;
+
+			var width = opts ? opts.width || defaultWidth : defaultWidth;
+			var height = opts ? opts.height || defaultHeight : defaultHeight;
+			var radius = Math.min(width, height) / 2;
+
+			var totalSize = data.marksheet.grades.length;
+
+			var lng = i18n.t("sunburst", { returnObjectTrees: true });
+
+			var injectOwnGradeFlag = function(json, isDatum) {
+				if(isDatum) {
+					json.studentGrade = true;
+				}
+			};
+
+			var buildGradeHierarchy = function(data, studentId) {
+				var onlyFlunked = false;
+				var root = { name: "root", children : [] };
+				var approved = { name: "approved", children: [] };
+				var flunked = { name: "flunked", children: [] };
+				var notEvaluated = { name: "not-evaluated", children: [] };
+				var a1h = { name: "10-14", children: [] };
+				var a2h = { name: "15-20", children: [] };
+				var f1h = { name: "0-4", children: [] };
+				var f2h = { name: "5-9", children: [] };
+				$.each(data, function(i, datum) {
+					var grade = datum.grade;
+					var isStudentGrade = datum.id === studentId;
+					if(grade === "NE") {
+						notEvaluated.children.push(datum);
+						injectOwnGradeFlag(notEvaluated, isStudentGrade);
+					} else if(grade === "RE" || d3.round(grade,0) < 10) {
+						if(grade === "RE") {
+							onlyFlunked = true;
+							flunked.children.push(datum);
+							injectOwnGradeFlag(flunked, isStudentGrade);
+						} else if(d3.round(grade,0) <= 4) {
+							injectOwnGradeFlag(f1h, isStudentGrade);
+							f1h.children.push(datum);
+						} else {
+							injectOwnGradeFlag(f2h, isStudentGrade);
+							f2h.children.push(datum);
+						}
+					} else {
+						if(d3.round(grade,0) <= 14) {
+							injectOwnGradeFlag(a1h, isStudentGrade);
+
+							a1h.children.push(datum);
+						} else {
+							injectOwnGradeFlag(a2h, isStudentGrade);
+
+							a2h.children.push(datum);
+						}
+					}
+				});
+				a1h.size = a1h.children.length;
+				a2h.size = a2h.children.length;
+				f1h.size = f1h.children.length;
+				f2h.size = f2h.children.length;
+				a1h.data = a1h.children;
+				a1h.data = a2h.children;
+				f1h.data = f1h.children;
+				f2h.data = f2h.children;
+				a1h.children = undefined;
+				a2h.children = undefined;
+				f1h.children = undefined;
+				f2h.children = undefined;
+				approved.children.push(a2h);
+				approved.children.push(a1h);
+				approved.size = a1h.size + a2h.size;
+				if(onlyFlunked) {
+					flunked.size = flunked.children.length;
+					flunked.children = undefined;
+				} else {
+					flunked.children.push(f2h);
+					flunked.children.push(f1h);
+					flunked.size = f1h.size + f2h.size;
+				}
+
+				notEvaluated.size = notEvaluated.children.length;
+				notEvaluated.children = undefined;
+				root.children.push(approved);
+				root.children.push(flunked);
+				root.children.push(notEvaluated);
+				return root;
+			};
+
+			var vis = d3.select(selector).append("svg")
+				.attr("width", width)
+				.attr("height", height)
+				.append("g")
+				.attr("id", "container")
+				.attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+			var partition = d3.layout.partition()
+			    .size([2 * Math.PI, radius * radius])
+			    .value(function(d) { return d.size; });
+
+			var arc = d3.svg.arc()
+			    .startAngle(function(d) { return d.x; })
+			    .endAngle(function(d) { return d.x + d.dx; })
+			    .innerRadius(function(d) { return Math.sqrt(d.y); })
+			    .outerRadius(function(d) { return Math.sqrt(d.y + d.dy); });
+
+			var overarc = d3.svg.arc()
+			  .startAngle(function(d) { return d.x+5; })
+			    .endAngle(function(d) { return d.x + d.dx+5; })
+			    .innerRadius(function(d) { return Math.sqrt(d.y); })
+			    .outerRadius(function(d) { return Math.sqrt(d.y + d.dy); });
+
+		    vis.append("circle")
+		      .attr("r", radius)
+		      .style("opacity", 0);
+
+		    var studentD = undefined;
+		    var json = buildGradeHierarchy(data.marksheet.grades, data.studentId);
+			var nodes = partition.nodes(json);
+			var path = vis.data([json]).selectAll("path")
+		      .data(nodes)
+		      .enter().append("path")
+		      .attr("display", function(d) { return d.depth ? null : "none"; })
+		      .attr("d", arc)
+		      .attr("title", function(d) { return d.size+"/"+totalSize; })
+		      .attr("class", function(d) {
+		      	var classes = "sunburst-path tip sunburst-path-"+d.name;
+		      	if(d.studentGrade) {
+					studentD = d;
+		      		classes = classes+" sunburst-own-grade";
+		      	}
+		      	return classes;
+		      })
+		      .attr("fill-rule", "evenodd")
+		      .style("opacity", function(d) { return d.studentGrade?1:0.3; })
+		      .on("mouseover", function(d) {
+		      	$(".sunburst-path").attr("style", "opacity: 0.3");
+		      	$(this).attr("style", "opacity: 1");
+		      	$(".sunburst-percentage", selector).text(d3.round((d.value/totalSize)*100, 1)+"%");
+		      	$(".sunburst-text", selector).text(lng[d.name]);
+		      })
+		      .on("mouseout", function(d) {
+		      	$(this).attr("style", "opacity: 0.3");
+		      	$(".sunburst-own-grade").attr("style", "opacity: 1");
+		      	$(".sunburst-percentage", selector).text(d3.round((studentD.value/totalSize)*100, 1)+"%");
+		      	$(".sunburst-text", selector).text(lng[studentD.name]);
+		      });
+
+			vis.append("text")
+				.attr("class", "sunburst-percentage")
+				.attr("text-anchor", "middle");
+			
+			vis.append("text")
+				.attr("y", 20)
+				.attr("class", "sunburst-text")
+				.attr("text-anchor", "middle");
+		
+			$(".sunburst-percentage", selector).text(d3.round((studentD.value/totalSize)*100, 1)+"%");
+	      	$(".sunburst-text", selector).text(lng[studentD.name]);
+
+			$(".tip").qtip({
+				style: "qtip-tipsy",
+				position: {
+	            	target: 'mouse',
+	            	adjust: { x: 10, y: 10 }
+	         	}
+	   		});
+	   	}
+	});
+
+	var progressBars = Visualization.extend({
+
+		initialize: function(data, selector, opts) {
+			this.data = data;
+			this.selector = selector;
+			this.opts = opts;
+		},
+
+		render: function() {
+			var data = this.data;
+			var selector = this.selector;
+			var opts = this.opts;
+
+			var defaultWidth = 400;
+			var defaultHeight = 400;
+
+			var width = opts ? opts.width || defaultWidth : defaultWidth;
+			var height = opts ? opts.height || defaultHeight : defaultHeight;
+
+			var svgContainer = d3.select(selector).append("svg")
+								.attr("width", width)
+								.attr("height", height);
+
+			var createBar = function(container, x, y, value, maxValue, barHeight, wrappingBarHeight, text, innerBarClass, outerBarClass) {
+
+				var barContainer = container
+					.append("g")
+					.attr("transform", "translate("+x+","+y+")")
+					.attr("y", y)
+					.attr("class", "tip")
+					.attr("title", function() {
+						return value+"/"+maxValue;
+					});
+
+					//outer bar
+					barContainer.append("rect")
+						.attr("x", 0)
+						.attr("y", 0)
+						.attr("width", width-x)
+						.attr("height", wrappingBarHeight)
+						.attr("class", "progress-bar progress-outer-bar "+outerBarClass);
+
+					//inner bar
+					barContainer.append("rect")
+						.attr("x", 0)
+						.attr("y", ((wrappingBarHeight - barHeight)/2))
+						.attr("width", (value/maxValue)*(width-x))
+						.attr("height", barHeight)
+						.attr("class", "progress-bar progress-inner-bar "+innerBarClass)
+						.attr("data-powertip", function(d) { return value+" of "+maxValue; });
+
+					//bar text
+					barContainer.append("text")
+						.attr("x", -x)
+						.attr("y", (wrappingBarHeight/2)+5)
+						.text(text);
+
+				return barContainer;
+			}
+
+			//create degree progress bars
+			$.each(data, function(i, degree) {
+				createBar(svgContainer, 100, ((i+1)*25)+20, degree["credits"], degree["required-credits"], 10, 20, degree["degree"], "progress-main", "progress-main");
 			});
-		});
 
-	};
+			$(".tip").qtip({
+				style: "qtip-tipsy",
+				position: {
+	            	target: 'mouse',
+	            	adjust: { x: 10, y: 10 }
+	         	}
+	   		});
+		}
+	});
 
 	var overallStatisticsVisualization = function(data, selector, opts) {
 		if(!opts) var opts={};
@@ -823,29 +959,32 @@
 	//VISUALIZATIONS TO EXPORT
 	var visualizations = {
 		showEvaluationStatistics : function(data, selector, opts) {
-			evaluationStatisticsVisualization(data, selector, opts);
+			return evaluationStatisticsVisualization(data, selector, opts);
 		},
 		showHistogram: function(data, selector, opts) {
-			histogramVisualization(data, selector, opts);
+			return histogramVisualization(data, selector, opts);
 		},
 		showCourses : function(data, selector, opts) {		
-			multipleDonutsVisualization(data, selector, opts);
+			return multipleDonutsVisualization(data, selector, opts);
 		},
 		showCourseOvertime : function(data, selector, opts) {
-			multipleDonutsVisualization(data, selector, opts);
+			return multipleDonutsVisualization(data, selector, opts);
 		},
 		showEvaluationBoxPlot : function(data, selector, opts) {
-			boxPlot(data, selector, opts);
+			return boxPlot(data, selector, opts);
 		},
 		showEvaluationSunburst : function(data, selector, opts) {
-			sunburst(data, selector, opts);
+			return sunburst(data, selector, opts);
 		},
 		showStudentProgress : function(data, selector, opts) {
-			progressBars(data, selector, opts);
+			return progressBars(data, selector, opts);
 		},
 		showOverallStatistics : function(data, selector, opts) {
-			overallStatisticsVisualization(data, selector, opts);
+			return overallStatisticsVisualization(data, selector, opts);
 		},
+		vis : function(data, selector, opts) {
+			return vis(data, selector, opts);
+		}
 	};
 
 	SViz.init = function(params) {
@@ -875,10 +1014,10 @@
 		}
 		if (visualizations[vizName] !== "undefined") {
 			if(typeof data === "object") {
-				visualizations[vizName](data, selector, opts);
+				return visualizations[vizName](data, selector, opts);
 			} else {
 				d3.json(data, function(data) {
-					visualizations[vizName](data, selector, opts);
+					return visualizations[vizName](data, selector, opts);
 				});
 			}
 		} else {

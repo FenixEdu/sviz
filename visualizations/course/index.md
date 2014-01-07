@@ -22,18 +22,16 @@ opts:
   - - innerRadius
     - 40px
     - the inner radius of each donut
+
+  - - showLegend
+    - true
+    - displays legend
+
+  - - legendSelector
+    - the original selector
+    - the selector where the legend should be displayed
 ---
 
 {% highlight json %}
-[{ 
-	"acronym": "IP",
-	"name": "Introduction to Programming",
-	"positive-grades": 74,
-	"negative-grades": 34,
-	"total": 108,
-	"median": 12.4,
-	"stdDev": 2.45
- },
- ...
-]
+{% include donuts/example.json %}
 {% endhighlight %}

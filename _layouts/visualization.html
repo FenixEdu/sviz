@@ -19,6 +19,14 @@ layout: default
 
 {% if page.opts != null %}
 <h4 style="margin-top: 30px">Optional Parameters</h4>
+
+You are free to customize the visualization through optional parameters.
+
+{% highlight javascript %}
+  SViz.loadViz("showCourses", "data.json", "#visualization", {"width": "300px"});
+{% endhighlight %}
+
+
 <table class="table table-bordered table-condensed">
   <thead>
     <th>Name</th> <th width="50%">Default Value</th> <th>Description</th>
