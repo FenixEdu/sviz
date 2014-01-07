@@ -78,7 +78,6 @@
 			log.info("No method to update this visualization was defined.");
 		};
 		$.extend(self, extension);
-
 		var update = function(newData, opts) {
 			if(typeof newData === "object") {
 				visUpdate(newData, opts);
@@ -88,14 +87,11 @@
 				});
 			}
 		};
-
 		return function(data, selector, opts) {
 			self.initialize(data, selector, opts);
 			self.render();
-			debugger;
 			return { "update": update };
 		};
-
 	};
 
 	/**
