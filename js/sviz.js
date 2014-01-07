@@ -579,7 +579,7 @@
 			svg.selectAll(".donut-arc")
 			  .data(function(d) { return pie(d.values); })
 			.enter().append("path")
-			  .attr("title", function(d) { return d.data.perc+" - ("+d.data["population"]+"/"+d.data["total"]+")"; })
+			  .attr("title", function(d) { return "<center>"+lng[d.data.name]+"<br>"+d.data["population"]+"/"+d.data["total"]+"<br/>"+d.data.perc+"</center>"; })
 			  .attr("class", function(d) { return "tip donut-arc donut-"+d.data.name; })
 			  .attr("d", arc);
 
