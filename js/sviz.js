@@ -241,21 +241,8 @@
 		    .attr("title", function(d){ if(opts.tooltip!=false && opts.tipNumbers!='none') {return (opts.tipNumbers=='count' ? d.y : (d3.round((d.y*100/data.students.length),2)+"%"));} })
 		    .attr("transform", function(d) { return "translate(" + x(d.x+0.5) + "," + y(d.y) + ")"; })
 		    .on('mouseover', function (d) {
-		      if(opts.details!=false) {
-		        x2.domain([d.x, d.x+1]);
-		        xAxis2.tickFormat(function(p) { if((p === d.x || p === d.x+1) && (p >= 0 && p <= 20) ) { return p; } else { return d3.format("d")(p); } });
-
-		        var min = d.x >= 0 ? d.x : 0;
-		        var max = d.x+1 >= 20 ? 20.1 : d.x+1.1;
-		        xAxis2.tickValues(d3.range(min-0.5, max+0.5, 0.1));
-
-
-		        sideChart.select(".x.axis").call(xAxis2);
-		        updateSideChart(sideValues.range([d.x, d.x+1])(d));
-		      }
-		      if(opts.table!=false) {
-		        updateTable(d);
-		      }
+		      if(opts.details!=false) { updateSideChart(d, sideValues.range([d.x, d.x+1])(d)); }
+		      if(opts.table!=false) { updateTable(d); }
 		    });
 		bar.append("rect")
 		  .attr("x", 1- barWidth/2)
@@ -367,7 +354,7 @@
 		  /* x Axis */
 		  var xAxis2 = d3.svg.axis()
 		    .scale(x2)
-		    .ticks(11)
+		    .ticks(10)
 		    .orient("bottom");
 
 		  sideChart.append("g")
@@ -375,16 +362,34 @@
 		    .attr("transform", "translate(0," + height + ")")
 		    .call(xAxis2)
 
+		      // on hover text? put
+
 		  /* bars */
-		  function updateSideChart(sideValues) {
+		  function updateSideChart(d, sideValues) {
+		    if(d===null) {
+		      // on hover text? remove
+		      x2.domain([data.minGrade, data.maxGrade]);
+		    } else {
+		      x2.domain([d.x, d.x+1]);
+		      xAxis2.tickFormat(function(p) { if( (p===d.x || p===d.x+0.5 || p===d.x+1) && (p>=data.minGrade && p<=data.maxGrade) ) { return p; } });
+
+		      var min = d.x >= data.minGrade ? d.x : data.minGrade;
+		      var max = d.x+1 >= data.maxGrade ? data.maxGrade+0.1 : d.x+1.1;
+		      xAxis2.tickValues(d3.range(min, max, 0.1));
+		    }
+		    sideChart.select(".x.axis")
+		        .call(xAxis2);
+		      /*.selectAll(".tick")
+		      .filter(function(d) {if(d!=dx-0.5 && d!=dx && d!=dx+0.5) return d;})
+		        .attr("class", "tick minor");*/
 
 		    // DATA JOIN - Join new data with old elements, if any.
 		    var sbar = sideChart.selectAll(".bar")
 		      .data(sideValues);
-		      debugger;
+
 		    // ENTER - Create new elements as needed.
 		    sbar.enter().append("g")
-		      .attr("transform", function(d) { return "translate(" + x2(d.x) + ",0)"; })
+		      .attr("transform", function(d) { console.log(d.x); return "translate(" + x2(d.x+0.5) + ",0)"; })
 		      .append("rect")
 		        .attr("x", 1- barWidth2/2)
 		        .attr("width", barWidth2 -2);
@@ -400,11 +405,11 @@
 		  }
 
 		  var sideValues = d3.layout.histogram()
-		    .range([data.minGrade-0.5, data.maxGrade+0.5])
+		    .range([data.minGrade, data.maxGrade+1])
 		    .bins(11)
 		    .value(function(d) { return d.grade; });
 
-		  updateSideChart(sideValues([]));
+		  updateSideChart(null, sideValues(data.students));
 		}
 
 		/** Details Table **/
