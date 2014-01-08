@@ -19,7 +19,7 @@ opts:
   - - legend
     - true
     - show legend
-  - - hilightStudent
+  - - highlightStudent
     - true
     - hilight the student's mark
   - - showMinGrade
@@ -54,3 +54,4 @@ The student 'ID' must be unique and is not limited to numbers. 'selfID' is the I
 ]}
 {% endhighlight %}
 <p class="pull-right" style="font-size: 10px;">* All data was randomly generated.</p>
+<script>SViz.</script>

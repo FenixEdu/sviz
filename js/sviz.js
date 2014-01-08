@@ -191,6 +191,16 @@
 		  .tickFormat(d3.format("d"))
 		  .outerTickSize(0);
 
+		if(data.rank) {
+		  var xr = d3.scale.ordinal()
+		    .domain(data.rank);
+
+		  var xrAxis = d3.svg.axis()
+		  .scale(xr)
+		  .orient("bottom")
+		  .outerTickSize(0);
+		}
+
 		var y = d3.scale.linear()
 		  .rangeRound([height, 0]);
 
@@ -199,10 +209,14 @@
 		  .orient("left");
 
 		/* Setting up scales and bins */
+		var numRanks = data.rank? data.rank.length : 0;
+		var numBars = data.maxGrade - data.minGrade + numRanks;
+		var barWidth = d3.round(width1/numBars -1);
 		x.domain([data.minGrade-0.5, data.maxGrade+0.5])
-		  .rangeRound([0,width1]);
-
-		var barWidth = x(1)-x(0);
+		  .rangeRound([numRanks*(barWidth+1), width1]);
+		if(data.rank) {
+		  xr.rangeRoundBands([0, numRanks*(barWidth+1)], .1);
+		}
 
 		var valueBinning = d3.layout.histogram()
 		  .range([data.minGrade-0.5, data.maxGrade+0.5])
@@ -292,6 +306,13 @@
 		    .attr("y", 30)
 		    .style("text-anchor", "end")
 		    .text("Grade");
+
+		if(data.rank) {
+		  svg.append("g")
+		    .attr("class", "x axis")
+		    .attr("transform", "translate(0," + height + ")")
+		    .call(xrAxis);
+		}
 
 		/* y Axis */
 		svg.append("g")
