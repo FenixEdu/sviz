@@ -28,7 +28,9 @@
     "0-4": "0-4",
     "5-9": "5-9",
     "10-14": "10-14",
-    "15-20": "15-20"
+    "15-20": "15-20",
+    "of": "de",
+    "students": "alunos"
   },
   "overall-statistics": {
     "title": "Medidas Estatísticas",
@@ -37,5 +39,12 @@
     "no-attends": "Não Avaliadas: ",
     "mean": "Média: ",
     "extent": "Nota Mín & Max: "
+  },
+  "progress-bars": {
+    "required-ects": "ECTS necessários",
+    "ects-of": "ECTS de"
+  },
+  "bubbles": {
+    "approved": "Aprovados"
   }
 }

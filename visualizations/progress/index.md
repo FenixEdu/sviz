@@ -17,17 +17,20 @@ opts:
 
 These are the required fields for this visualization to work. More fields can be added (for joint use with other visualizations), as long as this structure remains unchanged. If "notAttended" is not included, the number of not evaluated students will not be displayed.
 {% highlight json %}
-{ "minGrade": 0,
-  "maxGrade": 20,
-  "minRequiredGrade": 9,
-  "notAttended": "NA",
-  "students": [
-	{ "grade": 9.50  },
-	{ "grade": 7.55  },
-	{ "grade": 6.78  },
-	{ "grade": "NA"  },
-	{ "grade": 4.58  },
-	{ "grade": 4.93  },
- ...
-]}
+[{
+  "degree": "LEIC-A 2003",
+  "required-credits": 145,
+  "credits": 148,
+  "status": "concluded"
+}, {
+  "degree": "MEIC-A 2007",
+  "required-credits": 112,
+  "credits": 133,
+  "status": "concluded"
+}, {
+  "degree": "DEIC-A 2010",
+  "required-credits": 145,
+  "credits": 33,
+  "status": "active"
+}]
 {% endhighlight %}

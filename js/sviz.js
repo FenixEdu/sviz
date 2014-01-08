@@ -63,6 +63,14 @@
 			var result = { min: min, q1: q1, q2: q2, q3: q3, max: max, median: q2 };
 			log.debug("Computed Quantiles", result);
 			return result;
+		},
+		truncate: function(str, maxLength, suffix) {
+			if(str.length > maxLength) {
+				str = str.substring(0, maxLength + 1); 
+				str = str.substring(0, Math.min(str.length, str.lastIndexOf(" ")));
+				str = str + suffix;
+			}
+			return str;
 		}
 	};
 
@@ -98,423 +106,419 @@
 	 * Visualizations Definition
 	 **/
 
-	var vis = Visualization.extend({
+	var evaluationStatisticsVisualization = Visualization.extend({
 
 		initialize: function(data, selector, opts) {
-			console.log("I'm initializing");
 			this.data = data;
+			this.selector = selector;
+			this.opts = opts;
 		},
 
 		render: function() {
 			var data = this.data;
-			console.log("Im rendering");
-		},
+			var selector = this.selector;
+			var opts = opts;
 
-		update: function(newData, opts) {
-			console.log("Im updating");
+			if(!opts) var opts={};
+			//if opts.help
+			var lng = i18n.t("evaluation-statistics", { returnObjectTrees: true });
+		 	d3.select(selector).append("h4").text(lng["title"]);
+		 	var totalStudents = data.students.length;
+		 	var approvedStudents = d3.sum(data.students, function(el) {return (el.grade >= data.minRequiredGrade);});
+		 	var noAttendStudents = d3.sum(data.students, function(el) {return (el.grade === data.notAttended);});
+		  	if(opts.total!=false) {d3.select(selector).append("p").text( lng["total-students"] + totalStudents);}
+		  	if(opts.approved!=false) {d3.select(selector).append("p").text( lng["approved"]	+ d3.round(approvedStudents*100/totalStudents, 1) + "%  ("+approvedStudents+" "+i18n.t("students")+")");}
+		  	if(data.notAttended && opts.noattend!=false) {
+		  		d3.select(selector).append("p")
+		  			.text( lng["no-attends"] + d3.round(noAttendStudents*100/totalStudents, 1) + "%  ("+noAttendStudents+" "+i18n.t("students")+")");
+		  	}
+		  	if(opts.mean!=false) {d3.select(selector).append("p").text( lng["mean"] + d3.round(d3.mean(data.students, util.valuesInsideDomainOnly(data)), 2));}
+		  	if(opts.extent!=false) {d3.select(selector).append("p").text( lng["extent"] + d3.extent(data.students, util.valuesInsideDomainOnly(data)));}
+		  	if(opts.median!=false) {d3.select(selector).append("p").text( lng["median"] + d3.round(d3.median(data.students, util.valuesInsideDomainOnly(data)), 2));}
 		}
-
 	});
 
-	var evaluationStatisticsVisualization = function(data, selector, opts) {
-		if(!opts) var opts={};
-		//if opts.help
-		var lng = i18n.t("evaluation-statistics", { returnObjectTrees: true });
-	 	d3.select(selector).append("h4").text(lng["title"]);
-	 	var totalStudents = data.students.length;
-	 	var approvedStudents = d3.sum(data.students, function(el) {return (el.grade >= data.minRequiredGrade);});
-	 	var noAttendStudents = d3.sum(data.students, function(el) {return (el.grade === data.notAttended);});
-	  	if(opts.total!=false) {d3.select(selector).append("p").text( lng["total-students"] + totalStudents);}
-	  	if(opts.approved!=false) {d3.select(selector).append("p").text( lng["approved"]	+ d3.round(approvedStudents*100/totalStudents, 1) + "%  ("+approvedStudents+" "+i18n.t("students")+")");}
-	  	if(data.notAttended && opts.noattend!=false) {
-	  		d3.select(selector).append("p")
-	  			.text( lng["no-attends"] + d3.round(noAttendStudents*100/totalStudents, 1) + "%  ("+noAttendStudents+" "+i18n.t("students")+")");
-	  	}
-	  	if(opts.mean!=false) {d3.select(selector).append("p").text( lng["mean"] + d3.round(d3.mean(data.students, util.valuesInsideDomainOnly(data)), 2));}
-	  	if(opts.extent!=false) {d3.select(selector).append("p").text( lng["extent"] + d3.extent(data.students, util.valuesInsideDomainOnly(data)));}
-	  	if(opts.median!=false) {d3.select(selector).append("p").text( lng["median"] + d3.round(d3.median(data.students, util.valuesInsideDomainOnly(data)), 2));}
-	};
+	var histogramVisualization = Visualization.extend({
 
-	var histogramVisualization = function(data, selector, opts) {
+		initialize: function(data, selector, opts) {
+			this.data = data;
+			this.selector = selector;
+			this.opts = opts;
+		},
 
-		if(!opts) var opts={};
+		render: function() {
+			var data = this.data;
+			var selector = this.selector;
+			var opts = this.opts;
 
-		var lng = i18n.t("histogram", { returnObjectTrees: true });
+			if(!opts) var opts={};
 
-		var subjects = [["example.json", "Computação Gráfica"],
-				["example2.json", "Sistemas Operativos"]];
+			var lng = i18n.t("histogram", { returnObjectTrees: true });
 
-		/* Subject Selection */
-		var subjectSel = d3.select(selector).append("div")
-		  .append("select")
-		    .attr("class", "pull-right");
+			var subjects = [["example.json", "Computação Gráfica"],
+					["example2.json", "Sistemas Operativos"]];
 
-		subjectSel.selectAll("option")
-		    .data(subjects)
-		  .enter().append("option")
-		     .attr("value", function(d) {return d[0];})
-		     .text(function(d) {return d[1];});
+			/* Subject Selection */
+			var subjectSel = d3.select(selector).append("div")
+			  .append("select")
+			    .attr("class", "pull-right");
 
-		/* Margins and SVG container */
-		var margin = {top: 10, right: 20, bottom: 20, left: 30}, xgap = 50,
-			width1 = 560 - margin.left - xgap/2,
-			width2 = 250 - xgap/2 - margin.right,
-			height = 260 - margin.top - margin.bottom;
+			subjectSel.selectAll("option")
+			    .data(subjects)
+			  .enter().append("option")
+			     .attr("value", function(d) {return d[0];})
+			     .text(function(d) {return d[1];});
 
-		var frame = d3.select(selector).append("svg")
-		  .attr("width", width1 + width2 + xgap + margin.left + margin.right)
-		  .attr("height", height + margin.top + margin.bottom);
-		var svg = frame.append("g")
-		  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+			/* Margins and SVG container */
+			var margin = {top: 10, right: 20, bottom: 20, left: 30}, xgap = 50,
+				width1 = 560 - margin.left - xgap/2,
+				width2 = 250 - xgap/2 - margin.right,
+				height = 260 - margin.top - margin.bottom;
 
-		/* Sorting */
-		function comparator(a, b) {
-			if (a.grade > b.grade) return 1;
-			if (a.grade < b.grade) return -1;
-			// equal grades, solve by ID
-			if (a.ID > b.ID) return 1;
-			if (a.ID < b.ID) return -1;
-			return 0;
-		}
+			var frame = d3.select(selector).append("svg")
+			  .attr("width", width1 + width2 + xgap + margin.left + margin.right)
+			  .attr("height", height + margin.top + margin.bottom);
+			var svg = frame.append("g")
+			  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-		function sortBinElements(element, index, array) {
-			element.sort(comparator);
-		}
+			/* Sorting */
+			function comparator(a, b) {
+				if (a.grade > b.grade) return 1;
+				if (a.grade < b.grade) return -1;
+				// equal grades, solve by ID
+				if (a.ID > b.ID) return 1;
+				if (a.ID < b.ID) return -1;
+				return 0;
+			}
 
-		/* Axes */
-		var x = d3.scale.linear();
+			function sortBinElements(element, index, array) {
+				element.sort(comparator);
+			}
 
-		var xAxis = d3.svg.axis()
-		  .scale(x)
-		  .tickValues(d3.range(data.minGrade, data.maxGrade+1))
-		  .orient("bottom")
-		  .tickFormat(d3.format("d"))
-		  .outerTickSize(0);
+			/* Axes */
+			var x = d3.scale.linear();
 
-		if(data.rank) {
-		  var xr = d3.scale.ordinal()
-		    .domain(data.rank);
+			var xAxis = d3.svg.axis()
+			  .scale(x)
+			  .tickValues(d3.range(data.minGrade, data.maxGrade+1))
+			  .orient("bottom")
+			  .tickFormat(d3.format("d"))
+			  .outerTickSize(0);
 
-		  var xrAxis = d3.svg.axis()
-		  .scale(xr)
-		  .orient("bottom")
-		  .outerTickSize(0);
-		}
+			if(data.rank) {
+			  var xr = d3.scale.ordinal()
+			    .domain(data.rank);
 
-		var y = d3.scale.linear()
-		  .rangeRound([height, 0]);
+			  var xrAxis = d3.svg.axis()
+			  .scale(xr)
+			  .orient("bottom")
+			  .outerTickSize(0);
+			}
 
-		var yAxis = d3.svg.axis()
-		  .scale(y)
-		  .orient("left");
+			var y = d3.scale.linear()
+			  .rangeRound([height, 0]);
 
-		/* Setting up scales and bins */
-		var numRanks = data.rank? data.rank.length : 0;
-		var numBars = data.maxGrade - data.minGrade + numRanks;
-		var barGap = 1;
-		var barWidth = d3.round(width1/numBars) -barGap;
-		x.domain([data.minGrade-0.5, data.maxGrade+0.5])
-		  .rangeRound([numRanks*(barWidth+barGap), width1]);
-		if(data.rank) {
-		  xr.rangeRoundBands([0, numRanks*(barWidth+barGap)], .1);
-		}
+			var yAxis = d3.svg.axis()
+			  .scale(y)
+			  .orient("left");
 
-		var valueBinning = d3.layout.histogram()
-		  .range([data.minGrade-0.5, data.maxGrade+0.5])
-		  .bins(data.maxGrade - data.minGrade +1)
-		  .value(function(d) { return d.grade; });
-		var values = valueBinning(data.students);
-		values.forEach(sortBinElements);
+			/* Setting up scales and bins */
+			var numRanks = data.rank? data.rank.length : 0;
+			var numBars = data.maxGrade - data.minGrade + numRanks;
+			var barGap = 1;
+			var barWidth = d3.round(width1/numBars) -barGap;
+			x.domain([data.minGrade-0.5, data.maxGrade+0.5])
+			  .rangeRound([numRanks*(barWidth+barGap), width1]);
+			if(data.rank) {
+			  xr.rangeRoundBands([0, numRanks*(barWidth+barGap)], .1);
+			}
 
-		y.domain([0, d3.max(values, function(d) { return d.y; })])
+			var valueBinning = d3.layout.histogram()
+			  .range([data.minGrade-0.5, data.maxGrade+0.5])
+			  .bins(data.maxGrade - data.minGrade +1)
+			  .value(function(d) { return d.grade; });
+			var values = valueBinning(data.students);
+			values.forEach(sortBinElements);
 
-		/* min Grade Rectangle */
-		if(data.minRequiredGrade && opts.showMinGrade!=false) {
-		  svg.append("g")
-		     .append("rect")
-		        .attr("class", "minRect")
-		        .attr("x", 0)
-		        .attr("width", x(data.minRequiredGrade))
-		        .attr("height", height);
-		}
+			y.domain([0, d3.max(values, function(d) { return d.y; })])
 
-		/** Bars - Main **/
-		var highlightStudent = function(data) {
-		  return function(d) {
-		    if(data.selfID && opts.highlightStudent!=false) {
-		      for(var i in d) {
-		        if(!(i in {'x':1, 'dx':1, 'y':1})) {
-		          if(d[i].ID == data.selfID) {
-		            return "tip bar you";
-		    }}}}
-		    return "tip bar";
-		  }
-		}
+			/* min Grade Rectangle */
+			if(data.minRequiredGrade && opts.showMinGrade!=false) {
+			  svg.append("g")
+			     .append("rect")
+			        .attr("class", "minRect")
+			        .attr("x", 0)
+			        .attr("width", x(data.minRequiredGrade))
+			        .attr("height", height);
+			}
 
-		var bar = svg.selectAll(".bar")
-		    .data(values)
-		  .enter().append("g")
-		    .attr("class", highlightStudent(data))
-		    .attr("title", function(d){ if(opts.tooltip!=false && opts.tipNumbers!='none') {return (opts.tipNumbers=='count' ? d.y : (d3.round((d.y*100/data.students.length),2)+"%"));} })
-		    .attr("transform", function(d) { return "translate(" + x(d.x+0.5) + "," + y(d.y) + ")"; })
-		    .on('mouseover', function (d) {
-		      if(opts.details!=false) { updateSideChart(d, sideValues.range([d.x, d.x+1])(d)); }
-		      if(opts.table!=false) { updateTable(d); }
-		    });
-		bar.append("rect")
-		  .attr("x", 1- barWidth/2)
-		  .attr("width", barWidth -2)
-		  .attr("height", function(d) { return height - y(d.y); });
+			/** Bars - Main **/
+			var highlightStudent = function(data) {
+			  return function(d) {
+			    if(data.selfID && opts.highlightStudent!=false) {
+			      for(var i in d) {
+			        if(!(i in {'x':1, 'dx':1, 'y':1})) {
+			          if(d[i].ID == data.selfID) {
+			            return "tip bar you";
+			    }}}}
+			    return "tip bar";
+			  }
+			}
 
-		/* number inside bars */
-		if(opts.barNumbers!='none') {
-		  bar.append("text")
-		    .attr("dy", ".75em")
-		    .attr("y", 6)
-		    .attr("x", 0)
-		    .attr("text-anchor", "middle")
-		    .text(function(d) { if(d.y!=0) {return (opts.barNumbers=='percent' ? (d3.round((d.y*100/data.students.length))+"%") : d.y);} });
-		}
+			var bar = svg.selectAll(".bar")
+			    .data(values)
+			  .enter().append("g")
+			    .attr("class", highlightStudent(data))
+			    .attr("title", function(d){ if(opts.tooltip!=false && opts.tipNumbers!='none') {return (opts.tipNumbers=='count' ? d.y : (d3.round((d.y*100/data.students.length),2)+"%"));} })
+			    .attr("transform", function(d) { return "translate(" + x(d.x+0.5) + "," + y(d.y) + ")"; })
+			    .on('mouseover', function (d) {
+			      if(opts.details!=false) { updateSideChart(d, sideValues.range([d.x, d.x+1])(d)); }
+			      if(opts.table!=false) { updateTable(d); }
+			    });
+			bar.append("rect")
+			  .attr("x", 1- barWidth/2)
+			  .attr("width", barWidth -2)
+			  .attr("height", function(d) { return height - y(d.y); });
 
-		/* Tooltip */
-		if(opts.tooltip!=false && opts.tipNumbers!='none') {
-		  $(".tip").qtip({
-		    style: "qtip-tipsy",
-		    position: { my: 'bottom middle', at: 'top middle'}
-		  });
-		}
+			/* number inside bars */
+			if(opts.barNumbers!='none') {
+			  bar.append("text")
+			    .attr("dy", ".75em")
+			    .attr("y", 6)
+			    .attr("x", 0)
+			    .attr("text-anchor", "middle")
+			    .text(function(d) { if(d.y!=0) {return (opts.barNumbers=='percent' ? (d3.round((d.y*100/data.students.length))+"%") : d.y);} });
+			}
 
-		/* min Grade Line */
-		if(data.minRequiredGrade && opts.showMinGrade!=false) {
-		  svg.append("g")
-		    .attr("class", "line")
-		    .attr("transform", function(d) { return "translate(" + x(data.minRequiredGrade) + ", 0)"; })
-		    .append("line")
-		      .attr("x1", 0)
-		      .attr("x2", 0)
-		      .attr("y1", 0)
-		      .attr("y2", height);
-		}
+			/* Tooltip */
+			if(opts.tooltip!=false && opts.tipNumbers!='none') {
+			  $(".tip").qtip({
+			    style: "qtip-tipsy",
+			    position: { my: 'bottom middle', at: 'top middle'}
+			  });
+			}
 
-		/* x Axis */
-		svg.append("g")
-		  .attr("class", "x axis")
-		  .attr("transform", "translate(0," + height + ")")
-		  .call(xAxis)
-		  .append("text")
-		    .attr("class", "label")
-		    .attr("x", width1)
-		    .attr("y", 30)
-		    .style("text-anchor", "end")
-		    .text("Grade");
+			/* min Grade Line */
+			if(data.minRequiredGrade && opts.showMinGrade!=false) {
+			  svg.append("g")
+			    .attr("class", "line")
+			    .attr("transform", function(d) { return "translate(" + x(data.minRequiredGrade) + ", 0)"; })
+			    .append("line")
+			      .attr("x1", 0)
+			      .attr("x2", 0)
+			      .attr("y1", 0)
+			      .attr("y2", height);
+			}
 
-		if(data.rank) {
-		  svg.append("g")
-		    .attr("class", "x axis")
-		    .attr("transform", "translate(0," + height + ")")
-		    .call(xrAxis);
-		}
+			/* x Axis */
+			svg.append("g")
+			  .attr("class", "x axis")
+			  .attr("transform", "translate(0," + height + ")")
+			  .call(xAxis)
+			  .append("text")
+			    .attr("class", "label")
+			    .attr("x", width1)
+			    .attr("y", 30)
+			    .style("text-anchor", "end")
+			    .text("Grade");
 
-		/* y Axis */
-		svg.append("g")
-		  .attr("class", "y axis")
-		  .call(yAxis)
-		  .append("text")
-		    .attr("class", "label")
-		    .attr("transform", "rotate(-90)")
-		    .attr("y", 6)
-		    .attr("dy", ".71em")
-		    .style("text-anchor", "end")
-		    .text(lng['y-label']);
+			if(data.rank) {
+			  svg.append("g")
+			    .attr("class", "x axis")
+			    .attr("transform", "translate(0," + height + ")")
+			    .call(xrAxis);
+			}
 
-		/* Legend */
-		if(opts.legend!=false) {
-		  var legend = svg.append("g")
-		    .attr("class", "legend")
-		    .attr("transform", "translate(0,0)");
+			/* y Axis */
+			svg.append("g")
+			  .attr("class", "y axis")
+			  .call(yAxis)
+			  .append("text")
+			    .attr("class", "label")
+			    .attr("transform", "rotate(-90)")
+			    .attr("y", 6)
+			    .attr("dy", ".71em")
+			    .style("text-anchor", "end")
+			    .text(lng['y-label']);
 
-		  var dy=0;
-		  if(data.selfID && opts.highlightStudent!=false) {
-		    var l = legend.append("g").attr("transform", "translate("+(width1-18)+","+dy+")");
-		    l.append("rect")
-		      .attr("width", 18)
-		      .attr("height", 18)
-		      .style("fill", "purple");
-		    l.append("text")
-		      .attr("x", -6)
-		      .attr("y", 9)
-		      .attr("dy", ".35em")
-		      .style("text-anchor", "end")
-		      .text(lng['self-id']);
-		    dy+=20;
-		  }
-		  if(data.minRequiredGrade && opts.showMinGrade!=false) {
-		    var l = legend.append("g").attr("transform", "translate("+(width1-18)+","+dy+")");
-		    l.append("line")
-		      .attr("x2", 18)
-		      .attr("y1", 9)
-		      .attr("y2", 9)
-		      .attr("class", "line");
-		    l.append("text")
-		      .attr("x", -6)
-		      .attr("y", 9)
-		      .attr("dy", ".35em")
-		      .style("text-anchor", "end")
-		      .text(lng['min-grade']);
-		  }
-		}
+			/* Legend */
+			if(opts.legend!=false) {
+			  var legend = svg.append("g")
+			    .attr("class", "legend")
+			    .attr("transform", "translate(0,0)");
 
-		/** Side Chart **/
-		if(opts.details!=false) {
-		  var sideChart = frame.append("g").attr("transform", "translate("+(margin.left+width1+xgap)+","+margin.top+")");
+			  var dy=0;
+			  if(data.selfID && opts.highlightStudent!=false) {
+			    var l = legend.append("g").attr("transform", "translate("+(width1-18)+","+dy+")");
+			    l.append("rect")
+			      .attr("width", 18)
+			      .attr("height", 18)
+			      .style("fill", "purple");
+			    l.append("text")
+			      .attr("x", -6)
+			      .attr("y", 9)
+			      .attr("dy", ".35em")
+			      .style("text-anchor", "end")
+			      .text(lng['self-id']);
+			    dy+=20;
+			  }
+			  if(data.minRequiredGrade && opts.showMinGrade!=false) {
+			    var l = legend.append("g").attr("transform", "translate("+(width1-18)+","+dy+")");
+			    l.append("line")
+			      .attr("x2", 18)
+			      .attr("y1", 9)
+			      .attr("y2", 9)
+			      .attr("class", "line");
+			    l.append("text")
+			      .attr("x", -6)
+			      .attr("y", 9)
+			      .attr("dy", ".35em")
+			      .style("text-anchor", "end")
+			      .text(lng['min-grade']);
+			  }
+			}
 
-		  /* Setting up scales */
-		  var x2 = d3.scale.linear()
-		    .domain([data.minGrade, data.maxGrade])
-		    .rangeRound([0,width2]);
+			/** Side Chart **/
+			if(opts.details!=false) {
+			  var sideChart = frame.append("g").attr("transform", "translate("+(margin.left+width1+xgap)+","+margin.top+")");
 
-		  var barWidth2 = x2(1)-x2(0);
+			  /* Setting up scales */
+			  var x2 = d3.scale.linear()
+			    .domain([data.minGrade, data.maxGrade])
+			    .rangeRound([0,width2]);
 
-		  /* x Axis */
-		  var xAxis2 = d3.svg.axis()
-		    .scale(x2)
-		    .ticks(10)
-		    .orient("bottom");
+			  var barWidth2 = x2(1)-x2(0);
 
-		  sideChart.append("g")
-		    .attr("class", "x axis")
-		    .attr("transform", "translate(0," + height + ")")
-		    .call(xAxis2)
+			  /* x Axis */
+			  var xAxis2 = d3.svg.axis()
+			    .scale(x2)
+			    .ticks(10)
+			    .orient("bottom");
 
-		      // on hover text? put
+			  sideChart.append("g")
+			    .attr("class", "x axis")
+			    .attr("transform", "translate(0," + height + ")")
+			    .call(xAxis2)
 
-		  /* bars */
-		  function updateSideChart(d, sideValues) {
-		    if(d===null) {
-		      // on hover text? remove
-		      x2.domain([data.minGrade, data.maxGrade]);
-		    } else {
-		      x2.domain([d.x, d.x+1]);
-		      xAxis2.tickFormat(function(p) { if( (p===d.x || p===d.x+0.5 || p===d.x+0.9) && (p>=data.minGrade && p<=data.maxGrade) ) { return p; } });
+			      // on hover text? put
 
-		      var min = d.x >= data.minGrade ? d.x : data.minGrade;
-		      var max = d.x+1 >= data.maxGrade ? data.maxGrade+0.1 : d.x+1.1;
-		      xAxis2.tickValues(d3.range(min, max, 0.1));
-		    }
-		    sideChart.select(".x.axis").call(xAxis2);
+			  /* bars */
+			  function updateSideChart(d, sideValues) {
+			    if(d===null) {
+			      // on hover text? remove
+			      x2.domain([data.minGrade, data.maxGrade]);
+			    } else {
+			      x2.domain([d.x, d.x+1]);
+			      xAxis2.tickFormat(function(p) { if( (p===d.x || p===d.x+0.5 || p===d.x+0.9) && (p>=data.minGrade && p<=data.maxGrade) ) { return p; } });
 
-		    // DATA JOIN - Join new data with old elements, if any.
-		    var sbar = sideChart.selectAll(".bar")
-		      .data(sideValues);
+			      var min = d.x >= data.minGrade ? d.x : data.minGrade;
+			      var max = d.x+1 >= data.maxGrade ? data.maxGrade+0.1 : d.x+1.1;
+			      xAxis2.tickValues(d3.range(min, max, 0.1));
+			    }
+			    sideChart.select(".x.axis").call(xAxis2);
 
-		    // ENTER - Create new elements as needed.
-		    sbar.enter().append("g")
-		      .attr("transform", function(d) { return "translate(" + x2(d.x) + ",0)"; })
-		      .append("rect")
-		        .attr("x", 1- barWidth2/2)
-		        .attr("width", barWidth2 -2);
+			    // DATA JOIN - Join new data with old elements, if any.
+			    var sbar = sideChart.selectAll(".bar")
+			      .data(sideValues);
 
-		    // UPDATE - Update new and old elements
-		    sbar.attr("class", highlightStudent(data));
-		    sbar.select("rect")
-		      .attr("y", function(d) { return y(d.y); })
-		      .attr("height", function(d) { return height - y(d.y); });
+			    // ENTER - Create new elements as needed.
+			    sbar.enter().append("g")
+			      .attr("transform", function(d) { return "translate(" + x2(d.x) + ",0)"; })
+			      .append("rect")
+			        .attr("x", 1- barWidth2/2)
+			        .attr("width", barWidth2 -2);
 
-		    // EXIT - Remove old elements as needed.
-		    sbar.exit().remove();
-		  }
+			    // UPDATE - Update new and old elements
+			    sbar.attr("class", highlightStudent(data));
+			    sbar.select("rect")
+			      .attr("y", function(d) { return y(d.y); })
+			      .attr("height", function(d) { return height - y(d.y); });
 
-		  var sideValues = d3.layout.histogram()
-		    .range([data.minGrade, data.maxGrade])
-		    .bins(10)
-		    .value(function(d) { return d.grade; });
+			    // EXIT - Remove old elements as needed.
+			    sbar.exit().remove();
+			  }
 
-		  updateSideChart(null, sideValues(data.students));
-		}
+			  var sideValues = d3.layout.histogram()
+			    .range([data.minGrade, data.maxGrade])
+			    .bins(10)
+			    .value(function(d) { return d.grade; });
 
-		/** Details Table **/
-		if(opts.table!=false) {
-		  var table = d3.select(selector).append("table").attr("class", "table table-hover table-bordered table-condensed");
+			  updateSideChart(null, sideValues(data.students));
+			}
 
-		  var columns = opts.tableColumns || ["ID", "photo", "name", "grade"];
+			/** Details Table **/
+			if(opts.table!=false) {
+			  var table = d3.select(selector).append("table").attr("class", "table table-hover table-bordered table-condensed");
 
-		  var theader = table.append("thead");
-		  theader.append("tr").selectAll("th")
-		      .data(function() { return columns.map(function(column) {return {column: column, value: lng["table-columns"][column]};}); })
-		    .enter().append("th")
-		      .text(function(d) { return d.value; });
+			  var columns = opts.tableColumns || ["ID", "photo", "name", "grade"];
 
-		  var tbody = table.append("tbody");
+			  var theader = table.append("thead");
+			  theader.append("tr").selectAll("th")
+			      .data(function() { return columns.map(function(column) {return {column: column, value: lng["table-columns"][column]};}); })
+			    .enter().append("th")
+			      .text(function(d) { return d.value; });
 
-		  function updateTable(values) {
-		    // DATA JOIN - Join new data with old elements, if any.
-		    var tr = tbody.selectAll("tr")
-		      .data(values);
+			  var tbody = table.append("tbody");
 
-		    // ENTER - Create new elements as needed.
-		    tr.enter().append("tr");
+			  function updateTable(values) {
+			    // DATA JOIN - Join new data with old elements, if any.
+			    var tr = tbody.selectAll("tr")
+			      .data(values);
 
-		    // UPDATE - Update new and old elements
-		    tr.selectAll("td")
-		      .data( function(row) { return columns.map(function(column) {return {column: column, value: row[column]};}); })
-		    .enter().append("td");
-		    tr.selectAll("td")
-		      .html(function(d) { return d.column=="photo"? "<img src='"+d.value+"' width='25px' alt='photo'/>" : d.value; });
+			    // ENTER - Create new elements as needed.
+			    tr.enter().append("tr");
 
-		    // EXIT - Remove old elements as needed.
-		    tr.exit().remove();
-		  }
+			    // UPDATE - Update new and old elements
+			    tr.selectAll("td")
+			      .data( function(row) { return columns.map(function(column) {return {column: column, value: row[column]};}); })
+			    .enter().append("td");
+			    tr.selectAll("td")
+			      .html(function(d) { return d.column=="photo"? "<img src='"+d.value+"' width='25px' alt='photo'/>" : d.value; });
 
-		  updateTable(data.students);
-		}
+			    // EXIT - Remove old elements as needed.
+			    tr.exit().remove();
+			  }
 
-		var update = function (newData) {
-		  //d3.json(this.options[this.selectedIndex].value, function() {
-		  //animation
-		  var duration = 750;
-		  var dstep = 25;
-		  var delay = function(d, i) { return i * dstep; };
-		  var transition = svg.transition().duration(duration+dstep*21);
-		  //change min & max grade?
-		  // resetting scales and bins
-		  values = valueBinning(newData.students);
-		  values.forEach(sortBinElements);
-		  y.domain([0, d3.max(values, function(d) { return d.y; })]);
-		  transition.select(".y.axis").call(yAxis);
-		  //update minRequiredGrade
-		  transition.select(".minRect").attr("width", x(newData.minRequiredGrade));
-		  transition.select(".line").attr("transform", function(d) { return "translate(" + x(newData.minRequiredGrade) + ", 0)"; })
-		  //selfID is supposed to be the same
-		  //changing bars around
-		  var bar = svg.selectAll(".bar")
-		      .data(values).transition().delay(delay).duration(duration)
-		    .attr("class", highlightStudent(newData))
-		    .attr("transform", function(d) { return "translate(" + x(d.x+0.5) + ", "+y(d.y)+")"; });
-		  bar.select("rect")
-		      .attr("height", function(d) { return height - y(d.y); });
-		  bar.select("text").text(function(d) { if(d.y!=0) {return (opts.barNumbers=='percent' ? (d3.round((d.y*100/data.students.length))+"%") : d.y);} });
-		  //updating detailed views
-		  updateSideChart(sideValues([]));
-		  updateTable(newData.students);
-		};
+			  updateTable(data.students);
+			}
 
- 		subjectSel.on("change", function change() {
- 			d3.json(this.options[this.selectedIndex].value, function(data) {
-				return update(data, opts);
-			});
- 		});
-	};
+			var update = function (newData) {
+			  //d3.json(this.options[this.selectedIndex].value, function() {
+			  //animation
+			  var duration = 750;
+			  var dstep = 25;
+			  var delay = function(d, i) { return i * dstep; };
+			  var transition = svg.transition().duration(duration+dstep*21);
+			  //change min & max grade?
+			  // resetting scales and bins
+			  values = valueBinning(newData.students);
+			  values.forEach(sortBinElements);
+			  y.domain([0, d3.max(values, function(d) { return d.y; })]);
+			  transition.select(".y.axis").call(yAxis);
+			  //update minRequiredGrade
+			  transition.select(".minRect").attr("width", x(newData.minRequiredGrade));
+			  transition.select(".line").attr("transform", function(d) { return "translate(" + x(newData.minRequiredGrade) + ", 0)"; })
+			  //selfID is supposed to be the same
+			  //changing bars around
+			  var bar = svg.selectAll(".bar")
+			      .data(values).transition().delay(delay).duration(duration)
+			    .attr("class", highlightStudent(newData))
+			    .attr("transform", function(d) { return "translate(" + x(d.x+0.5) + ", "+y(d.y)+")"; });
+			  bar.select("rect")
+			      .attr("height", function(d) { return height - y(d.y); });
+			  bar.select("text").text(function(d) { if(d.y!=0) {return (opts.barNumbers=='percent' ? (d3.round((d.y*100/data.students.length))+"%") : d.y);} });
+			  //updating detailed views
+			  updateSideChart(sideValues([]));
+			  updateTable(newData.students);
+			};
 
-	histogramVisualization.prototype.update = function(newData) {
-		if(typeof newData === "object") {
-			return update(newData, opts);
-		} else {
-			d3.json(newData, function(data) {
-				return update(data, opts);
-			});
-		}
-	};
-
+	 		subjectSel.on("change", function change() {
+	 			d3.json(this.options[this.selectedIndex].value, function(data) {
+					return update(data, opts);
+				});
+	 		});
+	 	}
+	});
 
 	var multipleDonutsVisualization = Visualization.extend({
 
@@ -599,7 +603,7 @@
 			svg.selectAll(".donut-arc")
 			  .data(function(d) { return pie(d.values); })
 			.enter().append("path")
-			  .attr("title", function(d) { return "<center>"+lng[d.data.name]+"<br>"+d.data["population"]+"/"+d.data["total"]+"<br/>"+d.data.perc+"</center>"; })
+			  .attr("title", function(d) { return "<center>"+lng[d.data.name]+"<br>"+d.data.perc+"<br/>"+d.data["population"]+"/"+d.data["total"]+"</center>"; })
 			  .attr("class", function(d) { return "tip donut-arc donut-"+d.data.name; })
 			  .attr("d", arc);
 
@@ -844,7 +848,7 @@
 		      .enter().append("path")
 		      .attr("display", function(d) { return d.depth ? null : "none"; })
 		      .attr("d", arc)
-		      .attr("title", function(d) { return d.size+"/"+totalSize; })
+		      .attr("title", function(d) { return "<center>"+lng[d.name]+"<br>"+d.size+" "+lng["of"]+" "+totalSize+" "+lng["students"]+"</center>"; })
 		      .attr("class", function(d) {
 		      	var classes = "sunburst-path tip sunburst-path-"+d.name;
 		      	if(d.studentGrade) {
@@ -877,7 +881,8 @@
 				.attr("class", "sunburst-text")
 				.attr("text-anchor", "middle");
 		
-			$(".sunburst-percentage", selector).text(d3.round((studentD.value/totalSize)*100, 1)+"%");
+			var perc = d3.round((studentD.value/totalSize)*100, 1);
+			$(".sunburst-percentage", selector).text(perc+"%");
 	      	$(".sunburst-text", selector).text(lng[studentD.name]);
 
 			$(".tip").qtip({
@@ -903,6 +908,8 @@
 			var selector = this.selector;
 			var opts = this.opts;
 
+			var lng = i18n.t("progress-bars", { returnObjectTrees: true });
+
 			var defaultWidth = 400;
 			var defaultHeight = 400;
 
@@ -920,8 +927,9 @@
 					.attr("transform", "translate("+x+","+y+")")
 					.attr("y", y)
 					.attr("class", "tip")
-					.attr("title", function() {
-						return value+"/"+maxValue;
+					.attr("title", function(d) {
+						var perc = value > maxValue ? 100 : d3.round((value/maxValue)*100,1);
+						return "<center>"+text+"<br>("+perc+"%) "+value+" "+lng["ects-of"]+" "+maxValue+" "+lng["required-ects"]+"</center>";
 					});
 
 					//outer bar
@@ -930,7 +938,8 @@
 						.attr("y", 0)
 						.attr("width", width-x)
 						.attr("height", wrappingBarHeight)
-						.attr("class", "progress-bar progress-outer-bar "+outerBarClass);
+						.attr("class", "progress-bar progress-outer-bar "+outerBarClass)
+						
 
 					//inner bar
 					barContainer.append("rect")
@@ -938,13 +947,14 @@
 						.attr("y", ((wrappingBarHeight - barHeight)/2))
 						.attr("width", (value/maxValue)*(width-x))
 						.attr("height", barHeight)
-						.attr("class", "progress-bar progress-inner-bar "+innerBarClass)
-						.attr("data-powertip", function(d) { return value+" of "+maxValue; });
+						.attr("class", function() { return "progress-bar progress-inner-bar "+innerBarClass+((value>=maxValue)?"-completed":"-incomplete") });
+						
 
 					//bar text
 					barContainer.append("text")
 						.attr("x", -x)
 						.attr("y", (wrappingBarHeight/2)+5)
+						.style("cursor", "pointer")
 						.text(text);
 
 				return barContainer;
@@ -965,17 +975,156 @@
 		}
 	});
 
-	var overallStatisticsVisualization = function(data, selector, opts) {
-		if(!opts) var opts={};
-		//if opts.help
-		var lng = i18n.t("overall-statistics", { returnObjectTrees: true });
-		d3.select(selector).append("h4").text(lng["title"]);
-		if(opts.mean!=false) {d3.select(selector).append("p").text( lng["mean"] + data.mean )}
-		if(opts.extent!=false) {d3.select(selector).append("p").text( lng["extent"] + data.minGrade + " , " + data.maxGrade )}
-		if(opts.approved!=false) {d3.select(selector).append("p").text( lng["approved"] + data.approved )}
-		if(opts.flunked!=false) {d3.select(selector).append("p").text( lng["flunked"] + data.flunked )}
-		if(opts.noattend!=false) {d3.select(selector).append("p").text( lng["no-attends"] + data.notAttended )}
-	};
+	var bubbleChart = Visualization.extend({
+
+		initialize: function(data, selector, opts) {
+			this.data = data;
+			this.selector = selector;
+			this.opts = opts;
+		},
+
+		render: function() {
+			var data = this.data;
+			var selector = this.selector;
+			var opts = this.opts;
+
+			var lng = i18n.t("bubbles", { returnObjectTrees: true });
+
+			var margin = {top: 20, right: 200, bottom: 0, left: 20};
+			var width = 550;
+			var height = (data.entries.length*20)+15;
+
+			var start_year = data["start-year"],
+				end_year = data["end-year"];
+
+			var c = d3.scale.category20c();
+
+			var x = d3.scale.linear()
+				.range([0, width]);
+
+			var xAxis = d3.svg.axis()
+				.scale(x)
+				.orient("top");
+
+			var formatYears = d3.format("dddd");
+			xAxis.tickFormat(formatYears).tickValues(d3.range(start_year, end_year+1));
+
+			var svg = d3.select(selector).append("svg")
+					.attr("width", width + margin.left + margin.right)
+					.attr("height", height + margin.top + margin.bottom)
+						.append("g")
+							.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+			x.domain([start_year, end_year]);
+			var xScale = d3.scale.linear()
+				.domain([start_year, end_year])
+				.range([0, width]);
+
+			svg.append("g")
+				.attr("class", "x axis")
+				.attr("transform", "translate(0," + 0 + ")")
+				.call(xAxis);
+
+			for (var j = 0; j < data.entries.length; j++) {
+				var g = svg.append("g").attr("class","journal");
+
+				var circles = g.selectAll("circle")
+					.data(data.entries[j]['years'])
+					.enter()
+					.append("circle");
+
+				var text = g.selectAll("text")
+					.data(data.entries[j]['years'])
+					.enter()
+					.append("text");
+
+				var rScale = d3.scale.linear()
+					.domain([0, d3.max(data.entries[j]['years'], function(d) { return d[1]; })])
+					.range([3, 9]);
+
+				circles.attr("cx", function(d, i) { return xScale(d[0]); })
+						.attr("cy", j*20+20)
+						.attr("r", function(d) { return rScale(d[1]); })
+						.attr("class", "tip")
+						.attr("title", function(d) { return "<center>"+d[1]+"%<br>"+lng["approved"]+"</center>" })
+						.style("cursor", "pointer")
+						.style("fill", function(d) { return c(j); })
+						.on("mouseover", circleMouseover(data.entries[j]));
+
+				text.attr("y", j*20+25)
+					.attr("x",function(d, i) { return xScale(d[0])-5; })
+					.attr("class","value")
+					.text(function(d){ return d[1]; })
+					.style("fill", function(d) { return c(j); })
+					.style("display","none");
+
+				g.append("text")
+					.attr("y", j*20+25)
+					.attr("x",width+20)
+					.attr("class","bubbles-label")
+					.text(util.truncate(data.entries[j]['name'],30,"..."))
+					.style("fill", function(d) { return c(j); })
+					.style("cursor", "pointer")
+					.on("mouseover", mouseover)
+					.on("mouseout", mouseout);
+			};
+
+			function circleMouseover(p) {
+				return function(d) {
+					console.log(p);
+					console.log(d);
+				}
+			}
+
+			function mouseover(p) {
+				var g = d3.select(this).node().parentNode;
+				d3.select(g).selectAll("circle").style("display","none");
+				d3.select(g).selectAll("text.value").style("display","block");
+			}
+
+			function mouseout(p) {
+				var g = d3.select(this).node().parentNode;
+				d3.select(g).selectAll("circle").style("display","block");
+				d3.select(g).selectAll("text.value").style("display","none");
+			}
+
+			$(".tip").qtip({
+				style: "qtip-tipsy",
+				position: {
+	            	target: 'mouse',
+	            	adjust: { x: 10, y: 10 }
+	         	}
+	   		});
+
+		}
+
+	});
+
+	var overallStatisticsVisualization = Visualization.extend({
+
+		initialize: function(data, selector, opts) {
+			this.data = data;
+			this.selector = selector;
+			this.opts = opts;
+		},
+
+		render: function() {
+			var data = this.data;
+			var selector = this.selector;
+			var opts = this.opts;
+
+			if(!opts) var opts={};
+			//if opts.help
+			var lng = i18n.t("overall-statistics", { returnObjectTrees: true });
+			d3.select(selector).append("h4").text(lng["title"]);
+			if(opts.mean!=false) {d3.select(selector).append("p").text( lng["mean"] + data.mean )}
+			if(opts.extent!=false) {d3.select(selector).append("p").text( lng["extent"] + data.minGrade + " , " + data.maxGrade )}
+			if(opts.approved!=false) {d3.select(selector).append("p").text( lng["approved"] + data.approved )}
+			if(opts.flunked!=false) {d3.select(selector).append("p").text( lng["flunked"] + data.flunked )}
+			if(opts.noattend!=false) {d3.select(selector).append("p").text( lng["no-attends"] + data.notAttended )}
+		}
+
+	});
 
 	//VISUALIZATIONS TO EXPORT
 	var visualizations = {
@@ -1003,8 +1152,8 @@
 		showOverallStatistics : function(data, selector, opts) {
 			return overallStatisticsVisualization(data, selector, opts);
 		},
-		vis : function(data, selector, opts) {
-			return vis(data, selector, opts);
+		showCurricularCoursesOvertime: function(data, selector, opts) {
+			return bubbleChart(data, selector, opts);
 		}
 	};
 

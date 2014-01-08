@@ -19,3 +19,5 @@ visualizations:
     path: boxplot
   - name: Sunburst
     path: sunburst
+  - name: Bubbles
+    path: bubbles
