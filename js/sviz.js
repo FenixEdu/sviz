@@ -186,8 +186,10 @@
 
 		var xAxis = d3.svg.axis()
 		  .scale(x)
-		  .ticks(20)
-		  .orient("bottom");
+		  .tickValues(d3.range(data.minGrade, data.maxGrade+1))
+		  .orient("bottom")
+		  .tickFormat(d3.format("d"))
+		  .outerTickSize(0);
 
 		var y = d3.scale.linear()
 		  .rangeRound([height, 0]);
@@ -222,9 +224,9 @@
 		}
 
 		/** Bars - Main **/
-		var hilightStudent = function(data) {
+		var highlightStudent = function(data) {
 		  return function(d) {
-		    if(data.selfID && opts.hilightStudent!=false) {
+		    if(data.selfID && opts.highlightStudent!=false) {
 		      for(var i in d) {
 		        if(!(i in {'x':1, 'dx':1, 'y':1})) {
 		          if(d[i].ID == data.selfID) {
@@ -237,7 +239,7 @@
 		var bar = svg.selectAll(".bar")
 		    .data(values)
 		  .enter().append("g")
-		    .attr("class", hilightStudent(data))
+		    .attr("class", highlightStudent(data))
 		    .attr("title", function(d){ if(opts.tooltip!=false && opts.tipNumbers!='none') {return (opts.tipNumbers=='count' ? d.y : (d3.round((d.y*100/data.students.length),2)+"%"));} })
 		    .attr("transform", function(d) { return "translate(" + x(d.x+0.5) + "," + y(d.y) + ")"; })
 		    .on('mouseover', function (d) {
@@ -310,7 +312,7 @@
 		    .attr("transform", "translate(0,0)");
 
 		  var dy=0;
-		  if(data.selfID && opts.hilightStudent!=false) {
+		  if(data.selfID && opts.highlightStudent!=false) {
 		    var l = legend.append("g").attr("transform", "translate("+(width1-18)+","+dy+")");
 		    l.append("rect")
 		      .attr("width", 18)
@@ -346,7 +348,7 @@
 
 		  /* Setting up scales */
 		  var x2 = d3.scale.linear()
-		    .domain([data.minGrade-0.5, data.maxGrade+0.5])
+		    .domain([data.minGrade, data.maxGrade])
 		    .rangeRound([0,width2]);
 
 		  var barWidth2 = x2(1)-x2(0);
@@ -371,17 +373,13 @@
 		      x2.domain([data.minGrade, data.maxGrade]);
 		    } else {
 		      x2.domain([d.x, d.x+1]);
-		      xAxis2.tickFormat(function(p) { if( (p===d.x || p===d.x+0.5 || p===d.x+1) && (p>=data.minGrade && p<=data.maxGrade) ) { return p; } });
+		      xAxis2.tickFormat(function(p) { if( (p===d.x || p===d.x+0.5 || p===d.x+0.9) && (p>=data.minGrade && p<=data.maxGrade) ) { return p; } });
 
 		      var min = d.x >= data.minGrade ? d.x : data.minGrade;
 		      var max = d.x+1 >= data.maxGrade ? data.maxGrade+0.1 : d.x+1.1;
 		      xAxis2.tickValues(d3.range(min, max, 0.1));
 		    }
-		    sideChart.select(".x.axis")
-		        .call(xAxis2);
-		      /*.selectAll(".tick")
-		      .filter(function(d) {if(d!=dx-0.5 && d!=dx && d!=dx+0.5) return d;})
-		        .attr("class", "tick minor");*/
+		    sideChart.select(".x.axis").call(xAxis2);
 
 		    // DATA JOIN - Join new data with old elements, if any.
 		    var sbar = sideChart.selectAll(".bar")
@@ -389,13 +387,13 @@
 
 		    // ENTER - Create new elements as needed.
 		    sbar.enter().append("g")
-		      .attr("transform", function(d) { console.log(d.x); return "translate(" + x2(d.x+0.5) + ",0)"; })
+		      .attr("transform", function(d) { return "translate(" + x2(d.x) + ",0)"; })
 		      .append("rect")
 		        .attr("x", 1- barWidth2/2)
 		        .attr("width", barWidth2 -2);
 
 		    // UPDATE - Update new and old elements
-		    sbar.attr("class", hilightStudent(data));
+		    sbar.attr("class", highlightStudent(data));
 		    sbar.select("rect")
 		      .attr("y", function(d) { return y(d.y); })
 		      .attr("height", function(d) { return height - y(d.y); });
@@ -405,8 +403,8 @@
 		  }
 
 		  var sideValues = d3.layout.histogram()
-		    .range([data.minGrade, data.maxGrade+1])
-		    .bins(11)
+		    .range([data.minGrade, data.maxGrade])
+		    .bins(10)
 		    .value(function(d) { return d.grade; });
 
 		  updateSideChart(null, sideValues(data.students));
@@ -468,7 +466,7 @@
 		  //changing bars around
 		  var bar = svg.selectAll(".bar")
 		      .data(values).transition().delay(delay).duration(duration)
-		    .attr("class", hilightStudent(newData))
+		    .attr("class", highlightStudent(newData))
 		    .attr("transform", function(d) { return "translate(" + x(d.x+0.5) + ", "+y(d.y)+")"; });
 		  bar.select("rect")
 		      .attr("height", function(d) { return height - y(d.y); });
