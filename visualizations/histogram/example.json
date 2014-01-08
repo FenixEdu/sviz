@@ -1,6 +1,6 @@
 { "minGrade": 0,
   "maxGrade": 20,
-  "minRequiredGrade": 9,
+  "minRequiredGrade": 9.5,
   "rank": ["NA"],
   "selfID": "341",
   "students": [

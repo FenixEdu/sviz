@@ -211,16 +211,17 @@
 		/* Setting up scales and bins */
 		var numRanks = data.rank? data.rank.length : 0;
 		var numBars = data.maxGrade - data.minGrade + numRanks;
-		var barWidth = d3.round(width1/numBars -1);
+		var barGap = 1;
+		var barWidth = d3.round(width1/numBars) -barGap;
 		x.domain([data.minGrade-0.5, data.maxGrade+0.5])
-		  .rangeRound([numRanks*(barWidth+1), width1]);
+		  .rangeRound([numRanks*(barWidth+barGap), width1]);
 		if(data.rank) {
-		  xr.rangeRoundBands([0, numRanks*(barWidth+1)], .1);
+		  xr.rangeRoundBands([0, numRanks*(barWidth+barGap)], .1);
 		}
 
 		var valueBinning = d3.layout.histogram()
 		  .range([data.minGrade-0.5, data.maxGrade+0.5])
-		  .bins(data.maxGrade+1)
+		  .bins(data.maxGrade - data.minGrade +1)
 		  .value(function(d) { return d.grade; });
 		var values = valueBinning(data.students);
 		values.forEach(sortBinElements);
