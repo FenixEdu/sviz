@@ -1,7 +1,7 @@
 { "minGrade": 0,
   "maxGrade": 20,
   "minRequiredGrade": 9.5,
-  "rank": ["NA"],
+  "ranks": ["NA"],
   "selfID": "341",
   "students": [
 	{ "ID": "734", "name": "Harry Wallington", "photo": "imgs/avatar_male.jpg", "grade": 3.8 },

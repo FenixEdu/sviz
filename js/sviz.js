@@ -64,6 +64,41 @@
 			log.debug("Computed Quantiles", result);
 			return result;
 		},
+		binData : function (data) { // requiers minGrade, maxGrade, and students array with .grade. optional ranks
+			var values = d3.layout.histogram()
+				.range([data.minGrade-0.5, data.maxGrade+0.5])
+				.bins(data.maxGrade - data.minGrade +1)
+				.value(function(d) { return d.grade; })
+				(data.students);
+			var numRanks = data.ranks? data.ranks.length : 0;
+			var dataLength = data.students.length;
+			if(numRanks>0) {
+				var rankValues = [], bin, v;
+				for (var i=0 ; i<numRanks ; i++) {
+					bin = rankValues[i] = [];
+					bin.x = data.minGrade - numRanks+i -0.5;
+					bin.dx = 1;
+					bin.y = 0;
+					bin.label = data.ranks[i];
+				}
+				for (var i=0 ; i<dataLength ; i++) {
+					v = data.students[i];
+					for (var j=0 ; j<numRanks ; j++) {
+						if (v.grade === data.ranks[j]) {
+							bin = rankValues[j];
+							bin.y ++;
+							bin.push(v);
+							break;
+						}
+					}
+				}
+				values = rankValues.concat(values);
+			}
+			values.forEach(this.sortBinElements);
+						console.log("values");
+			console.log(values);
+			return values;
+		},
 		truncate: function(str, maxLength, suffix) {
 			if(str.length > maxLength) {
 				str = str.substring(0, maxLength + 1); 
@@ -71,6 +106,18 @@
 				str = str + suffix;
 			}
 			return str;
+		},
+		/* Sorting */
+		comparator: function(a, b) {
+			if (a.grade > b.grade) return 1;
+			if (a.grade < b.grade) return -1;
+			// equal grades, solve by ID
+			if (a.ID > b.ID) return 1;
+			if (a.ID < b.ID) return -1;
+			return 0;
+		},
+		sortBinElements: function(element, index, array) {
+			element.sort(this.comparator);
 		}
 	};
 
@@ -181,20 +228,6 @@
 			var svg = frame.append("g")
 			  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-			/* Sorting */
-			function comparator(a, b) {
-				if (a.grade > b.grade) return 1;
-				if (a.grade < b.grade) return -1;
-				// equal grades, solve by ID
-				if (a.ID > b.ID) return 1;
-				if (a.ID < b.ID) return -1;
-				return 0;
-			}
-
-			function sortBinElements(element, index, array) {
-				element.sort(comparator);
-			}
-
 			/* Axes */
 			var x = d3.scale.linear();
 
@@ -205,9 +238,9 @@
 			  .tickFormat(d3.format("d"))
 			  .outerTickSize(0);
 
-			if(data.rank) {
+			if(data.ranks) {
 			  var xr = d3.scale.ordinal()
-			    .domain(data.rank);
+			    .domain(data.ranks);
 
 			  var xrAxis = d3.svg.axis()
 			  .scale(xr)
@@ -223,45 +256,17 @@
 			  .orient("left");
 
 			/* Setting up scales and bins */
-			var numRanks = data.rank? data.rank.length : 0;
+			var numRanks = data.ranks? data.ranks.length : 0;
 			var numBars = data.maxGrade - data.minGrade + numRanks;
 			var barGap = 1;
 			var barWidth = d3.round(width1/numBars) -barGap;
 			x.domain([data.minGrade-0.5, data.maxGrade+0.5])
 			  .rangeRound([numRanks*(barWidth+barGap), width1]);
-			if(data.rank) {
+			if(data.ranks) {
 			  xr.rangeRoundBands([0, numRanks*(barWidth+barGap)], .1);
 			}
 
-			var valueBinning = d3.layout.histogram()
-			  .range([data.minGrade-0.5, data.maxGrade+0.5])
-			  .bins(data.maxGrade - data.minGrade +1)
-			  //.bins((data.rank).concat(d3.range(data.minGrade-0.5, data.maxGrade +1.5)))
-			  .value(function(d) { return d.grade; });
-			var values = valueBinning(data.students);
-			if(numRanks>0) {
-			  var rankValues = [], bin, v;
-			  for (var i=0 ; i<numRanks ; i++) {
-			    bin = rankValues[i] = [];
-			    bin.x = data.minGrade - numRanks+i -0.5;
-			    bin.dx = 1;
-			    bin.y = 0;
-			    bin.label = data.rank[i];
-			  }
-			  for (var i=0 ; i<data.students.length ; i++) {
-			    v = data.students[i];
-			    for (var j=0 ; j<numRanks ; j++) {
-			      if (v.grade === data.rank[j]) {
-			        bin = rankValues[j];
-			        bin.y ++;
-			        bin.push(v);
-			        break;
-			      }
-			    }
-			  }
-			  values = rankValues.concat(values);
-			}
-			values.forEach(sortBinElements);
+			var values = util.binData(data);
 			y.domain([0, d3.max(values, function(d) { return d.y; })])
 
 			/* min Grade Rectangle */
@@ -344,7 +349,7 @@
 			    .style("text-anchor", "end")
 			    .text("Grade");
 
-			if(data.rank) {
+			if(data.ranks) {
 			  svg.append("g")
 			    .attr("class", "x axis")
 			    .attr("transform", "translate(0," + height + ")")
@@ -534,8 +539,7 @@
 			  var transition = svg.transition().duration(duration+dstep*21);
 			  //->change min & max grade? x domain is the same?
 			  //resetting scales and bins
-			  values = valueBinning(newData.students);
-			  values.forEach(sortBinElements);
+			  values = util.binData(newData);
 			  y.domain([0, d3.max(values, function(d) { return d.y; })]);
 			  transition.select(".y.axis").call(yAxis);
 			  //update minRequiredGrade
