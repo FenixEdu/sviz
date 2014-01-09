@@ -236,10 +236,32 @@
 			var valueBinning = d3.layout.histogram()
 			  .range([data.minGrade-0.5, data.maxGrade+0.5])
 			  .bins(data.maxGrade - data.minGrade +1)
+			  //.bins((data.rank).concat(d3.range(data.minGrade-0.5, data.maxGrade +1.5)))
 			  .value(function(d) { return d.grade; });
 			var values = valueBinning(data.students);
+			if(numRanks>0) {
+			  var rankValues = [], bin, v;
+			  for (var i=0 ; i<numRanks ; i++) {
+			    bin = rankValues[i] = [];
+			    bin.x = data.minGrade - numRanks+i -0.5;
+			    bin.dx = 1;
+			    bin.y = 0;
+			    bin.label = data.rank[i];
+			  }
+			  for (var i=0 ; i<data.students.length ; i++) {
+			    v = data.students[i];
+			    for (var j=0 ; j<numRanks ; j++) {
+			      if (v.grade === data.rank[j]) {
+			        bin = rankValues[j];
+			        bin.y ++;
+			        bin.push(v);
+			        break;
+			      }
+			    }
+			  }
+			  values = rankValues.concat(values);
+			}
 			values.forEach(sortBinElements);
-
 			y.domain([0, d3.max(values, function(d) { return d.y; })])
 
 			/* min Grade Rectangle */
@@ -510,16 +532,18 @@
 			  var dstep = 25;
 			  var delay = function(d, i) { return i * dstep; };
 			  var transition = svg.transition().duration(duration+dstep*21);
-			  //change min & max grade?
-			  // resetting scales and bins
+			  //->change min & max grade? x domain is the same?
+			  //resetting scales and bins
 			  values = valueBinning(newData.students);
 			  values.forEach(sortBinElements);
 			  y.domain([0, d3.max(values, function(d) { return d.y; })]);
 			  transition.select(".y.axis").call(yAxis);
 			  //update minRequiredGrade
-			  transition.select(".minRect").attr("width", x(newData.minRequiredGrade));
-			  transition.select(".line").attr("transform", function(d) { return "translate(" + x(newData.minRequiredGrade) + ", 0)"; })
-			  //selfID is supposed to be the same
+			  if(data.minRequiredGrade && opts.showMinGrade!=false) {
+			    transition.select(".minRect").attr("width", x(newData.minRequiredGrade));
+			    transition.select(".line").attr("transform", function(d) { return "translate(" + x(newData.minRequiredGrade) + ", 0)"; })
+			  }
+			  //->selfID is supposed to be the same
 			  //changing bars around
 			  var bar = svg.selectAll(".bar")
 			      .data(values).transition().delay(delay).duration(duration)
