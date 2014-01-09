@@ -407,18 +407,21 @@
 			    .attr("transform", "translate(0," + height + ")")
 			    .call(xAxis2)
 
-			  var schover = sideChart
-			   //.append("text")
-			   .append("foreignObject")
+			  var fo = sideChart.append("foreignObject")
 			    .attr("width", width2)
 			    .attr("height", height)
 			    .attr("class", "temporary")
 			    .attr("y", height/2 - 14*2)
-			    .append("xhtml:body")
+			  var schover = fo.append("xhtml:body")
 			      .style("text-align", "center")
-			    .html(lng['hover-text']);
+			      .html(lng['hover-text']);
 
 			  /* bars */
+			  var sideValues = d3.layout.histogram()
+			    .range([data.minGrade, data.maxGrade])
+			    .bins(10)
+			    .value(function(d) { return d.grade; });
+
 			  function updateSideChart(d, sideValues) {
 			    // update scale and axis
 			    x2.domain([d.x, d.x+1]);
@@ -449,10 +452,12 @@
 			    sbar.exit().remove();
 			  }
 
-			  var sideValues = d3.layout.histogram()
-			    .range([data.minGrade, data.maxGrade])
-			    .bins(10)
-			    .value(function(d) { return d.grade; });
+			  function resetSideChart() {
+			    x2.domain([]);
+			    sideChart.select(".x.axis").call(xAxis2);
+			    sideChart.selectAll(".bar").remove();
+			    fo.append("xhtml:body").append(function(){ return schover.remove()[0][0]; });
+			  }
 			}
 
 			/** Details Table **/
@@ -493,11 +498,13 @@
 			    tr.exit().remove();
 			  }
 
-			  //updateTable(data.students);
+			  function resetTable() {
+			    tbody.selectAll("tr").remove();
+			    tbody.append("tr").append(function(){ return thover.remove()[0][0]; });
+			  }
 			}
 
 			var update = function (newData) {
-			  //d3.json(this.options[this.selectedIndex].value, function() {
 			  //animation
 			  var duration = 750;
 			  var dstep = 25;
@@ -522,8 +529,8 @@
 			      .attr("height", function(d) { return height - y(d.y); });
 			  bar.select("text").text(function(d) { if(d.y!=0) {return (opts.barNumbers=='percent' ? (d3.round((d.y*100/data.students.length))+"%") : d.y);} });
 			  //updating detailed views
-			  updateSideChart(sideValues([]));
-			  updateTable(newData.students);
+			  if(opts.details!=false) { resetSideChart(); }
+			  if(opts.table!=false) { resetTable(); }
 			};
 
 	 		subjectSel.on("change", function change() {
