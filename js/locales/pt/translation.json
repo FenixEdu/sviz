@@ -13,7 +13,7 @@
     "min-grade": "Nota mínima",
     "self-id": "Você está aqui",
     "y-label": "Frequência",
-    "hover-text": "passa com o rato por cima das barras para veres os detalhes aqui",
+    "hover-text": "passa com o rato por cima das barras do gráfico para veres detalhes aqui",
     "table-columns": {"ID":"ID", "name":"Nome", "grade":"Nota", "photo":"Foto"}
   },
   "donuts": {

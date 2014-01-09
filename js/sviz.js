@@ -272,8 +272,8 @@
 			    .attr("title", function(d){ if(opts.tooltip!=false && opts.tipNumbers!='none') {return (opts.tipNumbers=='count' ? d.y : (d3.round((d.y*100/data.students.length),2)+"%"));} })
 			    .attr("transform", function(d) { return "translate(" + x(d.x+0.5) + "," + y(d.y) + ")"; })
 			    .on('mouseover', function (d) {
-			      if(opts.details!=false) { updateSideChart(d, sideValues.range([d.x, d.x+1])(d)); }
-			      if(opts.table!=false) { updateTable(d); }
+			      if(opts.details!=false) { schover.remove(); updateSideChart(d, sideValues.range([d.x, d.x+1])(d)); }
+			      if(opts.table!=false) { thover.remove(); updateTable(d); }
 			    });
 			bar.append("rect")
 			  .attr("x", 1- barWidth/2)
@@ -384,7 +384,7 @@
 
 			  /* Setting up scales */
 			  var x2 = d3.scale.linear()
-			    .domain([data.minGrade, data.maxGrade])
+			    .domain([])
 			    .rangeRound([0,width2]);
 
 			  var barWidth2 = width2/10/2;
@@ -407,21 +407,25 @@
 			    .attr("transform", "translate(0," + height + ")")
 			    .call(xAxis2)
 
-			      // on hover text? put
+			  var schover = sideChart
+			   //.append("text")
+			   .append("foreignObject")
+			    .attr("width", width2)
+			    .attr("height", height)
+			    .attr("class", "temporary")
+			    .attr("y", height/2 - 14*2)
+			    .append("xhtml:body")
+			      .style("text-align", "center")
+			    .html(lng['hover-text']);
 
 			  /* bars */
 			  function updateSideChart(d, sideValues) {
-			    if(d===null) {
-			      // on hover text? remove
-			      x2.domain([data.minGrade, data.maxGrade]);
-			    } else {
-			      x2.domain([d.x, d.x+1]);
-			      xAxis2.tickFormat(function(p) { if( (p===d.x || p===d.x+0.5 || p===d.x+0.9) && (p>=data.minGrade && p<=data.maxGrade) ) { return p; } });
-
-			      var min = d.x >= data.minGrade ? d.x : data.minGrade;
-			      var max = d.x+1 >= data.maxGrade ? data.maxGrade+0.1 : d.x+1.1;
-			      xAxis2.tickValues(d3.range(min, max, 0.1));
-			    }
+			    // update scale and axis
+			    x2.domain([d.x, d.x+1]);
+			    xAxis2.tickFormat(function(p) { if( (p===d.x || p===d.x+0.5 || p===d.x+0.9) && (p>=data.minGrade && p<=data.maxGrade) ) { return p; } });
+			    var min = d.x >= data.minGrade ? d.x : data.minGrade;
+			    var max = d.x+1 >= data.maxGrade ? data.maxGrade+0.1 : d.x+1.1;
+			    xAxis2.tickValues(d3.range(min, max, 0.1));
 			    sideChart.select(".x.axis").call(xAxis2);
 
 			    // DATA JOIN - Join new data with old elements, if any.
@@ -449,8 +453,6 @@
 			    .range([data.minGrade, data.maxGrade])
 			    .bins(10)
 			    .value(function(d) { return d.grade; });
-
-			  updateSideChart(null, sideValues(data.students));
 			}
 
 			/** Details Table **/
@@ -466,6 +468,11 @@
 			      .text(function(d) { return d.value; });
 
 			  var tbody = table.append("tbody");
+			  var thover= tbody.append("tr").append("td")
+			      .attr("colspan", columns.length)
+			      .attr("class", "temporary")
+			      .style("text-align", "center")
+			      .text(lng['hover-text']);
 
 			  function updateTable(values) {
 			    // DATA JOIN - Join new data with old elements, if any.
@@ -486,7 +493,7 @@
 			    tr.exit().remove();
 			  }
 
-			  updateTable(data.students);
+			  //updateTable(data.students);
 			}
 
 			var update = function (newData) {
