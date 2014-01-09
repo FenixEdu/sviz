@@ -170,9 +170,9 @@
 			     .text(function(d) {return d[1];});
 
 			/* Margins and SVG container */
-			var margin = {top: 10, right: 20, bottom: 20, left: 30}, xgap = 50,
-				width1 = 560 - margin.left - xgap/2,
-				width2 = 250 - xgap/2 - margin.right,
+			var margin = {top: 10, right: 10, bottom: 20, left: 30}, xgap = 60,
+				width1 = 570 - margin.left - xgap/2,
+				width2 = 240 - xgap/2 - margin.right,
 				height = 260 - margin.top - margin.bottom;
 
 			var frame = d3.select(selector).append("svg")
@@ -387,7 +387,14 @@
 			    .domain([data.minGrade, data.maxGrade])
 			    .rangeRound([0,width2]);
 
-			  var barWidth2 = x2(1)-x2(0);
+			  var barWidth2 = width2/10/2;
+			  if(opts.detailsBarWidth) {
+			    if(opts.detailsBarWidth>=3 && opts.detailsBarWidth<=width2/10) {
+			      barWidth2 = opts.detailsBarWidth;
+			    } else {
+			      log.info("[Histogram] Option detailsBarWidth has an impossible value. It must be between "+3+" and "+width2/10+". Setting to default value of "+barWidth2+".");
+			    }
+			  }
 
 			  /* x Axis */
 			  var xAxis2 = d3.svg.axis()

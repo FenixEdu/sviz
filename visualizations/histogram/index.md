@@ -34,6 +34,9 @@ opts:
   - - tipNumbers
     - percent
     - "'none', 'count' or 'percent'"
+  - - detailsBarWidth
+    - half of the space for each bar
+    - sets the bar width of the details side chart
 ---
 
 
