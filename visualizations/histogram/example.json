@@ -3,7 +3,7 @@
   "minRequiredGrade": 9.5,
   "ranks": ["NA"],
   "selfID": "341",
-  "students": [
+  "grades": [
 	{ "ID": "734", "name": "Harry Wallington", "photo": "imgs/avatar_male.jpg", "grade": 3.8 },
 	{ "ID": "738", "name": "Andrea Bleckley", "photo": "imgs/avatar_female.jpg", "grade": 9.5 },
 	{ "ID": "901", "name": "John Hobbes", "photo": "imgs/avatar_male.jpg", "grade": 9.6 },

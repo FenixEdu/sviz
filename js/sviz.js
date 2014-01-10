@@ -70,9 +70,9 @@
 				.bins(data.maxGrade - data.minGrade +1)
 				.frequency(frequency)
 				.value(function(d) { return d.grade; })
-				(data.students);
+				(data.grades);
 			var numRanks = data.ranks? data.ranks.length : 0;
-			var dataLength = data.students.length;
+			var dataLength = data.grades.length;
 			if(numRanks>0) {
 				var rankValues = [], bin, v, k = frequency? 1 : 1/dataLength;
 				for (var i=0 ; i<numRanks ; i++) {
@@ -83,7 +83,7 @@
 					bin.label = data.ranks[i];
 				}
 				for (var i=0 ; i<dataLength ; i++) {
-					v = data.students[i];
+					v = data.grades[i];
 					for (var j=0 ; j<numRanks ; j++) {
 						if (v.grade === data.ranks[j]) {
 							bin = rankValues[j];
@@ -131,21 +131,21 @@
 		var visUpdate = (typeof extension.update === "function") ? extension.update : function() {
 			log.info("No method to update this visualization was defined.");
 		};
-		$.extend(self, extension);
 		var update = function(newData, opts) {
 			if(typeof newData === "object") {
-				visUpdate(newData, opts);
+				visUpdate.call(self, newData, opts);
 			} else {
 				d3.json(newData, function(newData) {
-					visUpdate(newData, opts);
+					visUpdate.call(self, newData, opts);
 				});
 			}
 		};
+		$.extend(self, extension);
 		return function(data, selector, opts) {
 			self.initialize(data, selector, opts);
 			self.render();
 			return { "update": update };
-		};
+		}
 	};
 
 	/**
@@ -169,18 +169,18 @@
 			//if opts.help
 			var lng = i18n.t("evaluation-statistics", { returnObjectTrees: true });
 		 	d3.select(selector).append("h4").text(lng["title"]);
-		 	var totalStudents = data.students.length;
-		 	var approvedStudents = d3.sum(data.students, function(el) {return (el.grade >= data.minRequiredGrade);});
-		 	var noAttendStudents = d3.sum(data.students, function(el) {return (el.grade === data.notAttended);});
+		 	var totalStudents = data.grades.length;
+		 	var approvedStudents = d3.sum(data.grades, function(el) {return (el.grade >= data.minRequiredGrade);});
+		 	var noAttendStudents = d3.sum(data.grades, function(el) {return (el.grade === data.notAttended);});
 		  	if(opts.total!=false) {d3.select(selector).append("p").text( lng["total-students"] + totalStudents);}
 		  	if(opts.approved!=false) {d3.select(selector).append("p").text( lng["approved"]	+ d3.round(approvedStudents*100/totalStudents, 1) + "%  ("+approvedStudents+" "+i18n.t("students")+")");}
 		  	if(data.notAttended && opts.noattend!=false) {
 		  		d3.select(selector).append("p")
 		  			.text( lng["no-attends"] + d3.round(noAttendStudents*100/totalStudents, 1) + "%  ("+noAttendStudents+" "+i18n.t("students")+")");
 		  	}
-		  	if(opts.mean!=false) {d3.select(selector).append("p").text( lng["mean"] + d3.round(d3.mean(data.students, util.valuesInsideDomainOnly(data)), 2));}
-		  	if(opts.extent!=false) {d3.select(selector).append("p").text( lng["extent"] + d3.extent(data.students, util.valuesInsideDomainOnly(data)));}
-		  	if(opts.median!=false) {d3.select(selector).append("p").text( lng["median"] + d3.round(d3.median(data.students, util.valuesInsideDomainOnly(data)), 2));}
+		  	if(opts.mean!=false) {d3.select(selector).append("p").text( lng["mean"] + d3.round(d3.mean(data.grades, util.valuesInsideDomainOnly(data)), 2));}
+		  	if(opts.extent!=false) {d3.select(selector).append("p").text( lng["extent"] + d3.extent(data.grades, util.valuesInsideDomainOnly(data)));}
+		  	if(opts.median!=false) {d3.select(selector).append("p").text( lng["median"] + d3.round(d3.median(data.grades, util.valuesInsideDomainOnly(data)), 2));}
 		}
 	});
 
@@ -204,16 +204,16 @@
 
 			var getRightTypeOfNumber = function (y, opt) {
 				if(opt === "count") {
-					return opts.barNumbers==="count"? y : (y*data.students.length/100);
+					return opts.barNumbers==="count"? y : (y*data.grades.length/100);
 				} else if (opt === "percent") {
-					return opts.barNumbers==="count"? (y*100/data.students.length) : y;
+					return opts.barNumbers==="count"? (y*100/data.grades.length) : y;
 				}
 			}
 			var getCountFromPercent = function (y) {
-				return y*data.students.length/100;
+				return y*data.grades.length/100;
 			}
 			var getPercentFromCount = function (y) {
-				return y*100/data.students.length;
+				return y*100/data.grades.length;
 			}
 
 			var lng = i18n.t("histogram", { returnObjectTrees: true });
@@ -327,7 +327,7 @@
 
 			/* mean Line */
 			if(opts.showMean!=false) {
-			  var mean = d3.round( d3.mean(data.students, util.valuesInsideDomainOnly(data)), 2 );
+			  var mean = d3.round( d3.mean(data.grades, util.valuesInsideDomainOnly(data)), 2 );
 			  svg.append("g")
 			    .attr("class", "mean")
 			    .attr("transform", function(d) { return "translate(" + x(mean) + ", 0)"; })
@@ -487,7 +487,7 @@
 			    .attr("height", height)
 			    .attr("class", "temporary")
 			    .attr("y", height/2 - 14*2)
-			  var schover = fo.append("xhtml:body")
+			  var schover = fo.append("xhtml:div")
 			      .style("text-align", "center")
 			      .html(lng['hover-text']);
 
@@ -532,7 +532,7 @@
 			    x2.domain([]);
 			    sideChart.select(".x.axis").call(xAxis2);
 			    sideChart.selectAll(".bar").remove();
-			    fo.append("xhtml:body").append(function(){ return schover.remove()[0][0]; });
+			    fo.append("xhtml:div").append(function(){ return schover.remove()[0][0]; });
 			  }
 			}
 
@@ -580,8 +580,8 @@
 			  }
 			}
 
-			var update = function (newData) {
-			  //->student.id is supposed to be the same
+			this.myUpdate = function (newData) {
+			  this.data = newData;
 			  //resetting scales and bins
 			  setScales(newData);
 			  values = util.binData(newData, (opts.barNumbers!=="percent"));
@@ -607,8 +607,8 @@
 
 
 			  var newbar = bar.enter().append("g")
-			    .attr("class", highlightStudent(data))
-			    .attr("title", function(d){ if(opts.tooltip!=false && opts.tipNumbers!='none') {return (opts.tipNumbers=='count' ? d.y : (d3.round((d.y*100/data.students.length),2)+"%"));} })
+			    .attr("class", highlightStudent(newData))
+ 			    .attr("title", function(d){ if(opts.tooltip!=false && opts.tipNumbers!='none') { return (opts.tipNumbers=='count' ? getCountFromPercent(d.y) : (d3.round(getPercentFromCount(d.y),2)+"%"));} })
 			    .attr("transform", function(d) { return "translate(" + x(d.x+0.5) + "," + y(d.y) + ")"; })
 			    .on('mouseover', function (d) {
 			      if(opts.details!=false) { schover.remove(); updateSideChart(d, sideValues.range([d.x, d.x+1])(d)); }
@@ -635,7 +635,7 @@
 			      .attr("width", barWidth -2)
 			      .attr("height", function(d) { return height - y(d.y); });
 
-			  bar.select("text").text(function(d) { if(d.y!=0) {return (opts.barNumbers=='percent' ? (d3.round((d.y*100/data.students.length))+"%") : d.y);} });
+			  bar.select("text").text(function(d) { if(d.y!=0) {return (opts.barNumbers=='percent' ? (d3.round((d.y*100/data.grades.length))+"%") : d.y);} });
 
 
 			  bar.exit().remove();
@@ -649,14 +649,19 @@
 			  }
 			  //update mean
 			  if(opts.showMean!=false) {
-			    var mean = d3.round( d3.mean(newData.students, util.valuesInsideDomainOnly(newData)), 2 );
+			    var mean = d3.round( d3.mean(newData.grades, util.valuesInsideDomainOnly(newData)), 2 );
 			    transition.select(".mean").attr("transform", function(d) { return "translate(" + x(mean) + ", 0)"; })
 			  }
 			  //updating detailed views
 			  if(opts.details!=false) { resetSideChart(); }
 			  if(opts.table!=false) { resetTable(); }
 			};
+	 	},
+
+	 	update: function(newData, opts) {
+	 		this.myUpdate(newData);
 	 	}
+
 	});
 
 	var multipleDonutsVisualization = Visualization.extend({
@@ -870,13 +875,14 @@
 			var height = opts ? opts.height || defaultHeight : defaultHeight;
 			var radius = Math.min(width, height) / 2;
 
-			var totalSize = data.marksheet.grades.length;
+			var totalSize = data.grades.length;
 
 			var lng = i18n.t("sunburst", { returnObjectTrees: true });
 
-			var injectOwnGradeFlag = function(json, isDatum) {
+			var injectOwnGradeFlag = function(json, isDatum, grade) {
 				if(isDatum) {
 					json.studentGrade = true;
+					json.studentGradeValue = grade;
 				}
 			};
 
@@ -895,26 +901,26 @@
 					var isStudentGrade = datum.id === studentId;
 					if(grade === "NE") {
 						notEvaluated.children.push(datum);
-						injectOwnGradeFlag(notEvaluated, isStudentGrade);
+						injectOwnGradeFlag(notEvaluated, isStudentGrade, grade);
 					} else if(grade === "RE" || d3.round(grade,0) < 10) {
 						if(grade === "RE") {
 							onlyFlunked = true;
 							flunked.children.push(datum);
-							injectOwnGradeFlag(flunked, isStudentGrade);
+							injectOwnGradeFlag(flunked, isStudentGrade, grade);
 						} else if(d3.round(grade,0) <= 4) {
-							injectOwnGradeFlag(f1h, isStudentGrade);
+							injectOwnGradeFlag(f1h, isStudentGrade, grade);
 							f1h.children.push(datum);
 						} else {
-							injectOwnGradeFlag(f2h, isStudentGrade);
+							injectOwnGradeFlag(f2h, isStudentGrade, grade);
 							f2h.children.push(datum);
 						}
 					} else {
 						if(d3.round(grade,0) <= 14) {
-							injectOwnGradeFlag(a1h, isStudentGrade);
+							injectOwnGradeFlag(a1h, isStudentGrade, grade);
 
 							a1h.children.push(datum);
 						} else {
-							injectOwnGradeFlag(a2h, isStudentGrade);
+							injectOwnGradeFlag(a2h, isStudentGrade, grade);
 
 							a2h.children.push(datum);
 						}
@@ -980,7 +986,8 @@
 		      .style("opacity", 0);
 
 		    var studentD = undefined;
-		    var json = buildGradeHierarchy(data.marksheet.grades, data.studentId);
+		    var studentDGrade = undefined;
+		    var json = buildGradeHierarchy(data.grades, data.student.id);
 			var nodes = partition.nodes(json);
 			var path = vis.data([json]).selectAll("path")
 		      .data(nodes)
@@ -1002,13 +1009,16 @@
 		      	$(".sunburst-path").attr("style", "opacity: 0.3");
 		      	$(this).attr("style", "opacity: 1");
 		      	$(".sunburst-percentage", selector).text(d3.round((d.value/totalSize)*100, 1)+"%");
+  		      	$(".sunburst-percentage", selector).attr("y", 0);
 		      	$(".sunburst-text", selector).text(lng[d.name]);
 		      })
 		      .on("mouseout", function(d) {
 		      	$(this).attr("style", "opacity: 0.3");
 		      	$(".sunburst-own-grade").attr("style", "opacity: 1");
-		      	$(".sunburst-percentage", selector).text(d3.round((studentD.value/totalSize)*100, 1)+"%");
-		      	$(".sunburst-text", selector).text(lng[studentD.name]);
+		      	var text = (studentD.studentGradeValue !== "RE" && studentD.studentGradeValue !== "NE") ? studentD.studentGradeValue : lng[studentD.name];
+		      	$(".sunburst-percentage", selector).text(text);
+		      	$(".sunburst-percentage", selector).attr("y", 10);
+		      	$(".sunburst-text", selector).text("");
 		      });
 
 			vis.append("text")
@@ -1019,10 +1029,11 @@
 				.attr("y", 20)
 				.attr("class", "sunburst-text")
 				.attr("text-anchor", "middle");
-		
-			var perc = d3.round((studentD.value/totalSize)*100, 1);
-			$(".sunburst-percentage", selector).text(perc+"%");
-	      	$(".sunburst-text", selector).text(lng[studentD.name]);
+
+	      	var text = (studentD.studentGradeValue !== "RE" && studentD.studentGradeValue !== "NE") ? studentD.studentGradeValue : lng[studentD.name];
+			$(".sunburst-percentage", selector).text(text);
+	      	$(".sunburst-percentage", selector).attr("y", 10);
+	      	$(".sunburst-text", selector).text("");
 
 			$(".tip").qtip({
 				style: "qtip-tipsy",
@@ -1031,6 +1042,12 @@
 	            	adjust: { x: 10, y: 10 }
 	         	}
 	   		});
+	   	},
+
+	   	update: function(newData, opts) {
+	   		this.data = newData;
+	   		$(this.selector).empty();
+	   		this.render();
 	   	}
 	});
 
@@ -1049,8 +1066,8 @@
 
 			var lng = i18n.t("progress-bars", { returnObjectTrees: true });
 
-			var defaultWidth = 400;
-			var defaultHeight = 400;
+			var defaultWidth = 600;
+			var defaultHeight = data.length*50;
 
 			var width = opts ? opts.width || defaultWidth : defaultWidth;
 			var height = opts ? opts.height || defaultHeight : defaultHeight;
@@ -1099,6 +1116,10 @@
 				return barContainer;
 			}
 
+			data.sort(function(a,b) {
+				return a.year - b.year;
+			});
+
 			//create degree progress bars
 			$.each(data, function(i, degree) {
 				createBar(svgContainer, 100, ((i+1)*25)+20, degree["credits"], degree["required-credits"], 10, 20, degree["degree"], "progress-main", "progress-main");
@@ -1129,8 +1150,8 @@
 
 			var lng = i18n.t("bubbles", { returnObjectTrees: true });
 
-			var margin = {top: 20, right: 200, bottom: 0, left: 20};
-			var width = 550;
+			var margin = {top: 20, right: 400, bottom: 0, left: 20};
+			var width = 800;
 			var height = (data.entries.length*20)+15;
 
 			var start_year = data["start-year"],
@@ -1181,11 +1202,12 @@
 					.domain([0, d3.max(data.entries[j]['years'], function(d) { return d[1]; })])
 					.range([3, 9]);
 
+				
 				circles.attr("cx", function(d, i) { return xScale(d[0]); })
 						.attr("cy", j*20+20)
 						.attr("r", function(d) { return rScale(d[1]); })
 						.attr("class", "tip")
-						.attr("title", function(d) { return "<center>"+d[1]+"%<br>"+lng["approved"]+"</center>" })
+						.attr("title", function(d) { var perc = d3.round((d[1]/(d[1]+d[2]+d[3]))*100, 0); return "<center>"+perc+"%<br>"+lng["approved"]+"</center>" })
 						.style("cursor", "pointer")
 						.style("fill", function(d) { return c(j); })
 						.on("mouseover", circleMouseover(data.entries[j]));
@@ -1193,7 +1215,7 @@
 				text.attr("y", j*20+25)
 					.attr("x",function(d, i) { return xScale(d[0])-5; })
 					.attr("class","value")
-					.text(function(d){ return d[1]; })
+					.text(function(d){ var perc = d3.round((d[1]/(d[1]+d[2]+d[3]))*100, 0); return perc; })
 					.style("fill", function(d) { return c(j); })
 					.style("display","none");
 
@@ -1201,7 +1223,7 @@
 					.attr("y", j*20+25)
 					.attr("x",width+20)
 					.attr("class","bubbles-label")
-					.text(util.truncate(data.entries[j]['name'],30,"..."))
+					.text(util.truncate(data.entries[j]['name'],50,"..."))
 					.style("fill", function(d) { return c(j); })
 					.style("cursor", "pointer")
 					.on("mouseover", mouseover)
