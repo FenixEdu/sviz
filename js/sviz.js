@@ -283,7 +283,7 @@
 			  return function(d) {
 			    if(data.selfID && opts.highlightStudent!=false) {
 			      for(var i in d) {
-			        if(!(i in {'x':1, 'dx':1, 'y':1})) {
+			        if(!(i in {'x':1, 'dx':1, 'y':1, 'label':1})) {
 			          if(d[i].ID == data.selfID) {
 			            return "tip bar you";
 			    }}}}
@@ -376,7 +376,8 @@
 			if(opts.yAxis!=false) {
 			  var yAxis = d3.svg.axis()
 			    .scale(y)
-			    .orient("left");
+			    .orient("left")
+			    .tickFormat(function(d){return d3.round(d*100);});
 
 			  var g = svg.append("g")
 			    .attr("class", "y axis")
