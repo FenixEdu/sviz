@@ -198,6 +198,7 @@
 			var opts = this.opts;
 
 			if(!opts) var opts={};
+			if(!opts.barWidth) {opts.barWidth=0.9;} else if(opts.barWidth>1 || opts.barWidth<=0) {opts.barWidth=0.9; log.info("[Histogram] Option barWidth has an impossible value. It must be between ]0;1]. Setting to default value of "+opts.barWidth+".");}
 			if(!opts.barNumbers) {opts.barNumbers="count";}
 			if(!opts.tipNumbers) {opts.tipNumbers="percent";}
 
@@ -240,15 +241,16 @@
 			var y = d3.scale.linear()
 			  .rangeRound([height, 0]);
 
-			var numRanks, numBars, barGap, barWidth;
+			var numRanks, numBars, barPossibleWidth, barWidth;
 			var setScales = function (data) {
 			  numRanks = data.ranks? data.ranks.length : 0;
-			  numBars = data.maxGrade - data.minGrade + numRanks;
-			  barGap = 1;
-			  barWidth = d3.round(width1/numBars) -barGap;
+			  numBars = data.maxGrade - data.minGrade + 1 + numRanks;
+			  barPossibleWidth = d3.round(width1/numBars);
+			  barWidth = barPossibleWidth * opts.barWidth;
+			  var roundingerror = width1 - barPossibleWidth*numBars;
 			  x.domain([data.minGrade-0.5, data.maxGrade+0.5])
-			    .rangeRound([numRanks*(barWidth+barGap), width1]);
-			  xr.rangeRoundBands([0, numRanks*(barWidth+barGap)], .1);
+			    .rangeRound([numRanks*barPossibleWidth+roundingerror, width1]);
+			  xr.rangeRoundBands([roundingerror, numRanks*barPossibleWidth+roundingerror], 1-opts.barWidth);
 			}
 			setScales(data);
 			var values = util.binData(data, (opts.barNumbers!=="percent"));
@@ -281,7 +283,6 @@
 			    .data(values)
 			  .enter().append("g")
 			    .attr("class", highlightStudent(data))
-			    //.attr("title", function(d){ if(opts.tooltip!=false && opts.tipNumbers!='none') {var val = getRightTypeOfNumber(d.y, opts.tipNumbers);return (opts.tipNumbers=='count' ? val : (d3.round(val,2)+"%"));} })
  			    .attr("title", function(d){ if(opts.tooltip!=false && opts.tipNumbers!='none') { return (opts.tipNumbers=='count' ? getCountFromPercent(d.y) : (d3.round(getPercentFromCount(d.y),2)+"%"));} })
 			    .attr("transform", function(d) { return "translate(" + x(d.x+0.5) + "," + y(d.y) + ")"; })
 			    .on('mouseover', function (d) {
@@ -289,8 +290,8 @@
 			      if(opts.table!=false) { thover.remove(); updateTable(d); }
 			    });
 			bar.append("rect")
-			  .attr("x", 1- barWidth/2)
-			  .attr("width", barWidth -2)
+			  .attr("x", -barWidth/2)
+			  .attr("width", barWidth)
 			  .attr("height", function(d) { return height - y(d.y); });
 
 			/* number inside bars */
@@ -363,7 +364,7 @@
 			  var yAxis = d3.svg.axis()
 			    .scale(y)
 			    .orient("left")
-			    .tickFormat(function(d){return d3.round(d*100);});
+			    .tickFormat(function(d){return opts.barNumbers==="percent"? d3.round(d*100) : d;});
 
 			  var g = svg.append("g")
 			    .attr("class", "y axis")
