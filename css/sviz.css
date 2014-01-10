@@ -81,13 +81,13 @@ x:-o-prefocus,.qtip .qtip-tip{visibility:hidden}
 .donut-not-evaluated-grades{fill:#000}
 .donut-negative-grades{fill:#f13939}
 .donut-positive-grades{fill:#96c472}
-.axis path,.axis line{fill:none;stroke:#000;shape-rendering:crispEdges}
 .you{fill:purple !important}
 .bar{fill:steelblue}
 .bar:hover{fill:brown !important}
 .bar rect{shape-rendering:crispEdges}
 .bar text{fill:#fff}
 .axis path,.axis line{fill:none;stroke:#000;shape-rendering:crispEdges}
+.label{text-anchor:end}
 .line{stroke:red;stroke-width:1;stroke-dasharray:10,5}
 .minRect{fill:tomato;fill-opacity:0.2}
 .temporary{opacity:0.5}

@@ -329,16 +329,17 @@
 			    .tickFormat(d3.format("d"))
 			    .outerTickSize(0);
 
-			  svg.append("g")
+			  var g = svg.append("g")
 			    .attr("class", "x axis")
 			    .attr("transform", "translate(0," + height + ")")
-			    .call(xAxis)
-			    .append("text")
+			    .call(xAxis);
+			  if(opts.xAxisLabel!=false) {
+			    g.append("text")
 			      .attr("class", "label")
 			      .attr("x", width1)
-			      .attr("y", 30)
-			      .style("text-anchor", "end")
+			      .attr("y", -6)
 			      .text("Grade");
+			  }
 
 			  // ordinal x - for ranks
 			  var xrAxis = d3.svg.axis()
@@ -358,16 +359,17 @@
 			    .scale(y)
 			    .orient("left");
 
-			  svg.append("g")
+			  var g = svg.append("g")
 			    .attr("class", "y axis")
-			    .call(yAxis)
-			    .append("text")
+			    .call(yAxis);
+			  if(opts.yAxisLabel!=false) {
+			    g.append("text")
 			      .attr("class", "label")
 			      .attr("transform", "rotate(-90)")
 			      .attr("y", 6)
 			      .attr("dy", ".71em")
-			      .style("text-anchor", "end")
 			      .text(lng['y-label']);
+			  }
 			}
 
 			/* Legend */
