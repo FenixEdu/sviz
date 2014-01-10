@@ -15,7 +15,7 @@
     "self-id": "You",
     "y-label": "Frequency",
     "hover-text": "hover the mouse at the chart's bars to see details here",
-    "table-columns": {"ID":"ID", "name": "Name", "grade": "Grade", "photo":"Photo"}
+    "table-columns": {"id":"ID", "name": "Name", "grade": "Grade", "photo":"Photo"}
   },
   "donuts": {
     "not-evaluated-grades": "Not Evaluated",

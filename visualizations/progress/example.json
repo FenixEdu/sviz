@@ -1,14 +1,17 @@
 [{
+	"year": 2001,
 	"degree": "LEIC-A 2003",
 	"required-credits": 145,
 	"credits": 148,
 	"status": "concluded"
 }, {
+	"year": 2005,
 	"degree": "MEIC-A 2007",
 	"required-credits": 112,
 	"credits": 133,
 	"status": "concluded"
 }, {
+	"year": 2010,
 	"degree": "DEIC-A 2010",
 	"required-credits": 145,
 	"credits": 33,
