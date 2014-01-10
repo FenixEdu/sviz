@@ -95,8 +95,6 @@
 				values = rankValues.concat(values);
 			}
 			values.forEach(this.sortBinElements);
-						console.log("values");
-			console.log(values);
 			return values;
 		},
 		truncate: function(str, maxLength, suffix) {
@@ -228,44 +226,28 @@
 			var svg = frame.append("g")
 			  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-			/* Axes */
+			/* Setting up scales and bins */
 			var x = d3.scale.linear();
 
-			var xAxis = d3.svg.axis()
-			  .scale(x)
-			  .tickValues(d3.range(data.minGrade, data.maxGrade+1))
-			  .orient("bottom")
-			  .tickFormat(d3.format("d"))
-			  .outerTickSize(0);
-
+			var xr = d3.scale.ordinal();
 			if(data.ranks) {
-			  var xr = d3.scale.ordinal()
-			    .domain(data.ranks);
-
-			  var xrAxis = d3.svg.axis()
-			  .scale(xr)
-			  .orient("bottom")
-			  .outerTickSize(0);
+			  xr.domain(data.ranks);
 			}
 
 			var y = d3.scale.linear()
 			  .rangeRound([height, 0]);
 
-			var yAxis = d3.svg.axis()
-			  .scale(y)
-			  .orient("left");
-
-			/* Setting up scales and bins */
-			var numRanks = data.ranks? data.ranks.length : 0;
-			var numBars = data.maxGrade - data.minGrade + numRanks;
-			var barGap = 1;
-			var barWidth = d3.round(width1/numBars) -barGap;
-			x.domain([data.minGrade-0.5, data.maxGrade+0.5])
-			  .rangeRound([numRanks*(barWidth+barGap), width1]);
-			if(data.ranks) {
+			var numRanks, numBars, barGap, barWidth;
+			var setScales = function (data) {
+			  numRanks = data.ranks? data.ranks.length : 0;
+			  numBars = data.maxGrade - data.minGrade + numRanks;
+			  barGap = 1;
+			  barWidth = d3.round(width1/numBars) -barGap;
+			  x.domain([data.minGrade-0.5, data.maxGrade+0.5])
+			    .rangeRound([numRanks*(barWidth+barGap), width1]);
 			  xr.rangeRoundBands([0, numRanks*(barWidth+barGap)], .1);
 			}
-
+			setScales(data);
 			var values = util.binData(data);
 			y.domain([0, d3.max(values, function(d) { return d.y; })])
 
@@ -338,35 +320,55 @@
 			}
 
 			/* x Axis */
-			svg.append("g")
-			  .attr("class", "x axis")
-			  .attr("transform", "translate(0," + height + ")")
-			  .call(xAxis)
-			  .append("text")
-			    .attr("class", "label")
-			    .attr("x", width1)
-			    .attr("y", 30)
-			    .style("text-anchor", "end")
-			    .text("Grade");
+			if(opts.xAxis!=false) {
+			  //linear x
+			  var xAxis = d3.svg.axis()
+			    .scale(x)
+			    .tickValues(d3.range(data.minGrade, data.maxGrade+1))
+			    .orient("bottom")
+			    .tickFormat(d3.format("d"))
+			    .outerTickSize(0);
 
-			if(data.ranks) {
 			  svg.append("g")
 			    .attr("class", "x axis")
+			    .attr("transform", "translate(0," + height + ")")
+			    .call(xAxis)
+			    .append("text")
+			      .attr("class", "label")
+			      .attr("x", width1)
+			      .attr("y", 30)
+			      .style("text-anchor", "end")
+			      .text("Grade");
+
+			  // ordinal x - for ranks
+			  var xrAxis = d3.svg.axis()
+			    .scale(xr)
+			    .orient("bottom")
+			    .outerTickSize(0);
+
+			  svg.append("g")
+			    .attr("class", "xr axis")
 			    .attr("transform", "translate(0," + height + ")")
 			    .call(xrAxis);
 			}
 
 			/* y Axis */
-			svg.append("g")
-			  .attr("class", "y axis")
-			  .call(yAxis)
-			  .append("text")
-			    .attr("class", "label")
-			    .attr("transform", "rotate(-90)")
-			    .attr("y", 6)
-			    .attr("dy", ".71em")
-			    .style("text-anchor", "end")
-			    .text(lng['y-label']);
+			if(opts.yAxis!=false) {
+			  var yAxis = d3.svg.axis()
+			    .scale(y)
+			    .orient("left");
+
+			  svg.append("g")
+			    .attr("class", "y axis")
+			    .call(yAxis)
+			    .append("text")
+			      .attr("class", "label")
+			      .attr("transform", "rotate(-90)")
+			      .attr("y", 6)
+			      .attr("dy", ".71em")
+			      .style("text-anchor", "end")
+			      .text(lng['y-label']);
+			}
 
 			/* Legend */
 			if(opts.legend!=false) {
@@ -430,7 +432,7 @@
 			    .orient("bottom");
 
 			  sideChart.append("g")
-			    .attr("class", "x axis")
+			    .attr("class", "x2 axis")
 			    .attr("transform", "translate(0," + height + ")")
 			    .call(xAxis2)
 
@@ -456,7 +458,7 @@
 			    var min = d.x >= data.minGrade ? d.x : data.minGrade;
 			    var max = d.x+1 >= data.maxGrade ? data.maxGrade+0.1 : d.x+1.1;
 			    xAxis2.tickValues(d3.range(min, max, 0.1));
-			    sideChart.select(".x.axis").call(xAxis2);
+			    sideChart.select(".x2").call(xAxis2);
 
 			    // DATA JOIN - Join new data with old elements, if any.
 			    var sbar = sideChart.selectAll(".bar")
@@ -532,41 +534,83 @@
 			}
 
 			var update = function (newData) {
+			  //->selfID is supposed to be the same
+			  //resetting scales and bins
+			  setScales(newData);
+			  values = util.binData(newData);
+			  xAxis.tickValues(d3.range(newData.minGrade, newData.maxGrade+1));
+			  xr.domain(newData.ranks? newData.ranks : []);
+			  xrAxis.scale(xr);
+			  y.domain([0, d3.max(values, function(d) { return d.y; })]);
 			  //animation
 			  var duration = 750;
 			  var dstep = 25;
 			  var delay = function(d, i) { return i * dstep; };
-			  var transition = svg.transition().duration(duration+dstep*21);
-			  //->change min & max grade? x domain is the same?
-			  //resetting scales and bins
-			  values = util.binData(newData);
-			  y.domain([0, d3.max(values, function(d) { return d.y; })]);
-			  transition.select(".y.axis").call(yAxis);
+			  var transition = svg.transition().duration(duration+dstep*numBars);
+			  //animating scales and bins
+			  transition.select(".x").call(xAxis);
+			  transition.select(".xr").call(xrAxis);
+			  transition.select(".y").call(yAxis);
+
+
+
+			  //changing bars around
+			  var bar = svg.selectAll(".bar")
+			      .data(values);
+
+
+			  var newbar = bar.enter().append("g")
+			    .attr("class", highlightStudent(data))
+			    .attr("title", function(d){ if(opts.tooltip!=false && opts.tipNumbers!='none') {return (opts.tipNumbers=='count' ? d.y : (d3.round((d.y*100/data.students.length),2)+"%"));} })
+			    .attr("transform", function(d) { return "translate(" + x(d.x+0.5) + "," + y(d.y) + ")"; })
+			    .on('mouseover', function (d) {
+			      if(opts.details!=false) { schover.remove(); updateSideChart(d, sideValues.range([d.x, d.x+1])(d)); }
+			      if(opts.table!=false) { thover.remove(); updateTable(d); }
+			    });
+			  newbar.append("rect");
+			  /* number inside bars */
+			  if(opts.barNumbers!='none') {
+			    newbar.append("text")
+			      .attr("dy", ".75em")
+			      .attr("y", 6)
+			      .attr("x", 0)
+			      .attr("text-anchor", "middle");
+			  }
+
+
+			  bar.transition().delay(delay).duration(duration)
+			    .attr("class", highlightStudent(newData))
+			    .attr("transform", function(d) { return "translate(" + x(d.x+0.5) + "," + y(d.y) + ")"; });
+
+
+			  bar.select("rect")
+			      .attr("x", 1- barWidth/2)
+			      .attr("width", barWidth -2)
+			      .attr("height", function(d) { return height - y(d.y); });
+
+			  bar.select("text").text(function(d) { if(d.y!=0) {return (opts.barNumbers=='percent' ? (d3.round((d.y*100/data.students.length))+"%") : d.y);} });
+
+
+			  bar.exit().remove();
+
+
+
 			  //update minRequiredGrade
 			  if(data.minRequiredGrade && opts.showMinGrade!=false) {
 			    transition.select(".minRect").attr("width", x(newData.minRequiredGrade));
 			    transition.select(".line").attr("transform", function(d) { return "translate(" + x(newData.minRequiredGrade) + ", 0)"; })
 			  }
-			  //->selfID is supposed to be the same
-			  //changing bars around
-			  var bar = svg.selectAll(".bar")
-			      .data(values).transition().delay(delay).duration(duration)
-			    .attr("class", highlightStudent(newData))
-			    .attr("transform", function(d) { return "translate(" + x(d.x+0.5) + ", "+y(d.y)+")"; });
-			  bar.select("rect")
-			      .attr("height", function(d) { return height - y(d.y); });
-			  bar.select("text").text(function(d) { if(d.y!=0) {return (opts.barNumbers=='percent' ? (d3.round((d.y*100/data.students.length))+"%") : d.y);} });
 			  //updating detailed views
 			  if(opts.details!=false) { resetSideChart(); }
 			  if(opts.table!=false) { resetTable(); }
 			};
 
-	 		subjectSel.on("change", function change() {
-	 			d3.json(this.options[this.selectedIndex].value, function(data) {
+			subjectSel.on("change", function change() {
+				d3.json(this.options[this.selectedIndex].value, function(data) {
 					return update(data, opts);
 				});
-	 		});
-	 	}
+			});
+		}
 	});
 
 	var multipleDonutsVisualization = Visualization.extend({
