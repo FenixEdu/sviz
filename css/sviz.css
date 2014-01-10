@@ -88,6 +88,7 @@ x:-o-prefocus,.qtip .qtip-tip{visibility:hidden}
 .bar text{fill:#fff}
 .axis path,.axis line{fill:none;stroke:#000;shape-rendering:crispEdges}
 .label{text-anchor:end}
+.mean{stroke:green;stroke-width:1;stroke-dasharray:10,5}
 .line{stroke:red;stroke-width:1;stroke-dasharray:10,5}
 .minRect{fill:tomato;fill-opacity:0.2}
 .temporary{opacity:0.5}

@@ -325,6 +325,19 @@
 			      .attr("y2", height);
 			}
 
+			/* mean Line */
+			if(opts.showMean!=false) {
+			  var mean = d3.round( d3.mean(data.students, util.valuesInsideDomainOnly(data)), 2 );
+			  svg.append("g")
+			    .attr("class", "mean")
+			    .attr("transform", function(d) { return "translate(" + x(mean) + ", 0)"; })
+			    .append("line")
+			      .attr("x1", 0)
+			      .attr("x2", 0)
+			      .attr("y1", 0)
+			      .attr("y2", height);
+			}
+
 			/* x Axis */
 			if(opts.xAxis!=false) {
 			  //linear x
@@ -394,20 +407,6 @@
 			    .attr("transform", "translate(0,0)");
 
 			  var dy=0;
-			  if(data.selfID && opts.highlightStudent!=false) {
-			    var l = legend.append("g").attr("transform", "translate("+(width1-18)+","+dy+")");
-			    l.append("rect")
-			      .attr("width", 18)
-			      .attr("height", 18)
-			      .style("fill", "purple");
-			    l.append("text")
-			      .attr("x", -6)
-			      .attr("y", 9)
-			      .attr("dy", ".35em")
-			      .style("text-anchor", "end")
-			      .text(lng['self-id']);
-			    dy+=20;
-			  }
 			  if(data.minRequiredGrade && opts.showMinGrade!=false) {
 			    var l = legend.append("g").attr("transform", "translate("+(width1-18)+","+dy+")");
 			    l.append("line")
@@ -421,7 +420,37 @@
 			      .attr("dy", ".35em")
 			      .style("text-anchor", "end")
 			      .text(lng['min-grade']);
+			    dy+=20;
 			  }
+			  if(opts.showMean!=false) {
+			    var l = legend.append("g").attr("transform", "translate("+(width1-18)+","+dy+")");
+			    l.append("line")
+			      .attr("x2", 18)
+			      .attr("y1", 9)
+			      .attr("y2", 9)
+			      .attr("class", "mean");
+			    l.append("text")
+			      .attr("x", -6)
+			      .attr("y", 9)
+			      .attr("dy", ".35em")
+			      .style("text-anchor", "end")
+			      .text(lng['mean']);
+			    dy+=20;
+			  }
+			  if(data.selfID && opts.highlightStudent!=false) {
+			    var l = legend.append("g").attr("transform", "translate("+(width1-18)+","+dy+")");
+			    l.append("rect")
+			      .attr("width", 18)
+			      .attr("height", 18)
+			      .style("fill", "purple");
+			    l.append("text")
+			      .attr("x", -6)
+			      .attr("y", 9)
+			      .attr("dy", ".35em")
+			      .style("text-anchor", "end")
+			      .text(lng['self-id']);
+			  }
+
 			}
 
 			/** Side Chart **/
@@ -617,6 +646,11 @@
 			  if(data.minRequiredGrade && opts.showMinGrade!=false) {
 			    transition.select(".minRect").attr("width", x(newData.minRequiredGrade));
 			    transition.select(".line").attr("transform", function(d) { return "translate(" + x(newData.minRequiredGrade) + ", 0)"; })
+			  }
+			  //update mean
+			  if(opts.showMean!=false) {
+			    var mean = d3.round( d3.mean(newData.students, util.valuesInsideDomainOnly(newData)), 2 );
+			    transition.select(".mean").attr("transform", function(d) { return "translate(" + x(mean) + ", 0)"; })
 			  }
 			  //updating detailed views
 			  if(opts.details!=false) { resetSideChart(); }

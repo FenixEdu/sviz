@@ -11,6 +11,7 @@
   },
   "histogram": {
     "min-grade": "Minimum grade",
+    "mean": "Mean",
     "self-id": "You",
     "y-label": "Frequency",
     "hover-text": "hover the mouse at the chart's bars to see details here",

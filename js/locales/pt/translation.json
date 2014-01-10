@@ -11,6 +11,7 @@
   },
   "histogram": {
     "min-grade": "Nota mínima",
+    "mean": "Média",
     "self-id": "Você está aqui",
     "y-label": "Frequência",
     "hover-text": "passa com o rato por cima das barras do gráfico para veres detalhes aqui",
