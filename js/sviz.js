@@ -64,16 +64,17 @@
 			log.debug("Computed Quantiles", result);
 			return result;
 		},
-		binData : function (data) { // requiers minGrade, maxGrade, and students array with .grade. optional ranks
+		binData : function (data, frequency) { // requiers minGrade, maxGrade, and students array with .grade. Supports optional ranks
 			var values = d3.layout.histogram()
 				.range([data.minGrade-0.5, data.maxGrade+0.5])
 				.bins(data.maxGrade - data.minGrade +1)
+				.frequency(frequency)
 				.value(function(d) { return d.grade; })
 				(data.students);
 			var numRanks = data.ranks? data.ranks.length : 0;
 			var dataLength = data.students.length;
 			if(numRanks>0) {
-				var rankValues = [], bin, v;
+				var rankValues = [], bin, v, k = frequency? 1 : 1/dataLength;
 				for (var i=0 ; i<numRanks ; i++) {
 					bin = rankValues[i] = [];
 					bin.x = data.minGrade - numRanks+i -0.5;
@@ -86,7 +87,7 @@
 					for (var j=0 ; j<numRanks ; j++) {
 						if (v.grade === data.ranks[j]) {
 							bin = rankValues[j];
-							bin.y ++;
+							bin.y += k;
 							bin.push(v);
 							break;
 						}
@@ -197,6 +198,22 @@
 			var opts = this.opts;
 
 			if(!opts) var opts={};
+			if(!opts.barNumbers) {opts.barNumbers="count";}
+			if(!opts.tipNumbers) {opts.tipNumbers="percent";}
+
+			var getRightTypeOfNumber = function (y, opt) {
+				if(opt === "count") {
+					return opts.barNumbers==="count"? y : (y*data.students.length/100);
+				} else if (opt === "percent") {
+					return opts.barNumbers==="count"? (y*100/data.students.length) : y;
+				}
+			}
+			var getCountFromPercent = function (y) {
+				return y*data.students.length/100;
+			}
+			var getPercentFromCount = function (y) {
+				return y*100/data.students.length;
+			}
 
 			var lng = i18n.t("histogram", { returnObjectTrees: true });
 
@@ -248,7 +265,7 @@
 			  xr.rangeRoundBands([0, numRanks*(barWidth+barGap)], .1);
 			}
 			setScales(data);
-			var values = util.binData(data);
+			var values = util.binData(data, (opts.barNumbers!=="percent"));
 			y.domain([0, d3.max(values, function(d) { return d.y; })])
 
 			/* min Grade Rectangle */
@@ -278,7 +295,8 @@
 			    .data(values)
 			  .enter().append("g")
 			    .attr("class", highlightStudent(data))
-			    .attr("title", function(d){ if(opts.tooltip!=false && opts.tipNumbers!='none') {return (opts.tipNumbers=='count' ? d.y : (d3.round((d.y*100/data.students.length),2)+"%"));} })
+			    //.attr("title", function(d){ if(opts.tooltip!=false && opts.tipNumbers!='none') {var val = getRightTypeOfNumber(d.y, opts.tipNumbers);return (opts.tipNumbers=='count' ? val : (d3.round(val,2)+"%"));} })
+ 			    .attr("title", function(d){ if(opts.tooltip!=false && opts.tipNumbers!='none') { return (opts.tipNumbers=='count' ? getCountFromPercent(d.y) : (d3.round(getPercentFromCount(d.y),2)+"%"));} })
 			    .attr("transform", function(d) { return "translate(" + x(d.x+0.5) + "," + y(d.y) + ")"; })
 			    .on('mouseover', function (d) {
 			      if(opts.details!=false) { schover.remove(); updateSideChart(d, sideValues.range([d.x, d.x+1])(d)); }
@@ -296,7 +314,8 @@
 			    .attr("y", 6)
 			    .attr("x", 0)
 			    .attr("text-anchor", "middle")
-			    .text(function(d) { if(d.y!=0) {return (opts.barNumbers=='percent' ? (d3.round((d.y*100/data.students.length))+"%") : d.y);} });
+			    //.text(function(d) { if(d.y!=0) {var val = getRightTypeOfNumber(d.y, opts.barNumbers); return (opts.barNumbers=='percent'? (d3.round(val+"%") : val);} });
+			    .text(function(d) { if(d.y!=0) { return (opts.barNumbers=='percent'? d3.round(d.y, 1)+"%" : d.y); } });
 			}
 
 			/* Tooltip */
@@ -363,12 +382,20 @@
 			    .attr("class", "y axis")
 			    .call(yAxis);
 			  if(opts.yAxisLabel!=false) {
-			    g.append("text")
-			      .attr("class", "label")
-			      .attr("transform", "rotate(-90)")
-			      .attr("y", 6)
-			      .attr("dy", ".71em")
-			      .text(lng['y-label']);
+			    if(opts.barNumbers==="percent") {
+			      g.append("text")
+			        .attr("class", "label")
+			        .attr("x", 15)
+			        .attr("dy", ".71em")
+			        .text("%");
+			    } else { //count or none
+			      g.append("text")
+			        .attr("class", "label")
+			        .attr("transform", "rotate(-90)")
+			        .attr("y", 6)
+			        .attr("dy", ".71em")
+			        .text(lng['y-label']);
+			    }
 			  }
 			}
 
@@ -451,6 +478,7 @@
 			  var sideValues = d3.layout.histogram()
 			    .range([data.minGrade, data.maxGrade])
 			    .bins(10)
+			    .frequency((opts.barNumbers!=="percent"))
 			    .value(function(d) { return d.grade; });
 
 			  function updateSideChart(d, sideValues) {
@@ -539,7 +567,7 @@
 			  //->selfID is supposed to be the same
 			  //resetting scales and bins
 			  setScales(newData);
-			  values = util.binData(newData);
+			  values = util.binData(newData, (opts.barNumbers!=="percent"));
 			  xAxis.tickValues(d3.range(newData.minGrade, newData.maxGrade+1));
 			  xr.domain(newData.ranks? newData.ranks : []);
 			  xrAxis.scale(xr);
