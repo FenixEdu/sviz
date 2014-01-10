@@ -5,10 +5,25 @@ layout: default
 
 <p class="help-block" style="margin-bottom: 20px">{{page.description}}</p>
 
+<div id="ss"><select class="pull-right"></select></div>
+<script>
+  var subjects = [["example.json", "Computação Gráfica"], ["example2.json", "Sistemas Operativos"]];
+  var subjectSel = d3.select("select");
+  subjectSel.selectAll("option")
+      .data(subjects)
+    .enter().append("option")
+      .attr("value", function(d) {return d[0];})
+      .text(function(d) {return d[1];});
+  subjectSel.on("change", function change() {
+    d3.json(this.options[this.selectedIndex].value, function(data) { return viz.update(data); });
+  });
+</script>
+
 <div id="visualization"></div>
 <script>
   SViz.init({ localesBasePath: "{{site.baseurl}}/js" });
-  SViz.loadViz("{{ page.call }}", "{{site.baseurl}}/visualizations/{{page.path}}/example.json", "#visualization" {{page.call_args}});
+  var viz = SViz.loadViz("{{ page.call }}", "{{site.baseurl}}/visualizations/{{page.path}}/example.json", "#visualization" {{page.call_args}});
+  console.log(viz);
 </script>
 
 <h4 style="margin-top: 30px">Invocation Example</h4>

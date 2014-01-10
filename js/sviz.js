@@ -217,20 +217,6 @@
 
 			var lng = i18n.t("histogram", { returnObjectTrees: true });
 
-			var subjects = [["example.json", "Computação Gráfica"],
-					["example2.json", "Sistemas Operativos"]];
-
-			/* Subject Selection */
-			var subjectSel = d3.select(selector).append("div")
-			  .append("select")
-			    .attr("class", "pull-right");
-
-			subjectSel.selectAll("option")
-			    .data(subjects)
-			  .enter().append("option")
-			     .attr("value", function(d) {return d[0];})
-			     .text(function(d) {return d[1];});
-
 			/* Margins and SVG container */
 			var margin = {top: 10, right: 10, bottom: 20, left: 30}, xgap = 60,
 				width1 = 570 - margin.left - xgap/2,
@@ -635,13 +621,7 @@
 			  if(opts.details!=false) { resetSideChart(); }
 			  if(opts.table!=false) { resetTable(); }
 			};
-
-			subjectSel.on("change", function change() {
-				d3.json(this.options[this.selectedIndex].value, function(data) {
-					return update(data, opts);
-				});
-			});
-		}
+	 	}
 	});
 
 	var multipleDonutsVisualization = Visualization.extend({
@@ -1293,6 +1273,7 @@
 				DEBUG_MODE = params.debug;
 			}
 		}
+		initializeSViz();
 	};
 
 	var initializeSViz = function() {
