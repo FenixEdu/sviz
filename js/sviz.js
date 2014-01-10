@@ -111,8 +111,8 @@
 			if (a.grade > b.grade) return 1;
 			if (a.grade < b.grade) return -1;
 			// equal grades, solve by ID
-			if (a.ID > b.ID) return 1;
-			if (a.ID < b.ID) return -1;
+			if (a.id > b.id) return 1;
+			if (a.id < b.id) return -1;
 			return 0;
 		},
 		sortBinElements: function(element, index, array) {
@@ -245,7 +245,7 @@
 			var setScales = function (data) {
 			  numRanks = data.ranks? data.ranks.length : 0;
 			  numBars = data.maxGrade - data.minGrade + 1 + numRanks;
-			  barPossibleWidth = d3.round(width1/numBars);
+			  barPossibleWidth = Math.floor(width1/numBars);
 			  barWidth = barPossibleWidth * opts.barWidth;
 			  var roundingerror = width1 - barPossibleWidth*numBars;
 			  x.domain([data.minGrade-0.5, data.maxGrade+0.5])
@@ -269,10 +269,10 @@
 			/** Bars - Main **/
 			var highlightStudent = function(data) {
 			  return function(d) {
-			    if(data.selfID && opts.highlightStudent!=false) {
+			    if(data.student.id && opts.highlightStudent!=false) {
 			      for(var i in d) {
 			        if(!(i in {'x':1, 'dx':1, 'y':1, 'label':1})) {
-			          if(d[i].ID == data.selfID) {
+			          if(d[i].id == data.student.id) {
 			            return "tip bar you";
 			    }}}}
 			    return "tip bar";
@@ -437,7 +437,7 @@
 			      .text(lng['mean']);
 			    dy+=20;
 			  }
-			  if(data.selfID && opts.highlightStudent!=false) {
+			  if(data.student.id && opts.highlightStudent!=false) {
 			    var l = legend.append("g").attr("transform", "translate("+(width1-18)+","+dy+")");
 			    l.append("rect")
 			      .attr("width", 18)
@@ -581,7 +581,7 @@
 			}
 
 			var update = function (newData) {
-			  //->selfID is supposed to be the same
+			  //->student.id is supposed to be the same
 			  //resetting scales and bins
 			  setScales(newData);
 			  values = util.binData(newData, (opts.barNumbers!=="percent"));
