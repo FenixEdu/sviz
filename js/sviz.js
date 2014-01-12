@@ -249,8 +249,8 @@
 			  barWidth = barPossibleWidth * opts.barWidth;
 			  var roundingerror = width1 - barPossibleWidth*numBars;
 			  x.domain([data.minGrade-0.5, data.maxGrade+0.5])
-			    .rangeRound([numRanks*barPossibleWidth+roundingerror, width1]);
-			  xr.rangeRoundBands([roundingerror, numRanks*barPossibleWidth+roundingerror], 1-opts.barWidth);
+			    .rangeRound([numRanks*barPossibleWidth, width1-roundingerror]);
+			  xr.rangeRoundBands([0, numRanks*barPossibleWidth], 1-opts.barWidth);
 			}
 			setScales(data);
 			var values = util.binData(data, (opts.barNumbers!=="percent"));
@@ -1340,6 +1340,8 @@
 	};
 
 	SViz.loadViz = function(vizName, data, selector, opts) {
+		console.log("Loading viz");
+
 		if(svizIsNotInitialized) {
 			log.debug("SViz is not initialized. Initializing...");
 			initializeSViz();

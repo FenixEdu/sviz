@@ -6,12 +6,7 @@ layout: default
 <p class="help-block" style="margin-bottom: 20px">{{page.description}}</p>
 
 <div id="ss"><select class="pull-right"></select></div>
-
-<div id="visualization"></div>
 <script>
-  SViz.init({ localesBasePath: "{{site.baseurl}}/js" });
-  console.log(SViz.loadViz("{{ page.call }}", "{{site.baseurl}}/visualizations/{{page.path}}/example.json", "#visualization" {{page.call_args}}));
-
   var subjects = [["example.json", "Computação Gráfica"], ["example2.json", "Sistemas Operativos"]];
   var subjectSel = d3.select("select");
   subjectSel.selectAll("option")
@@ -20,11 +15,12 @@ layout: default
       .attr("value", function(d) {return d[0];})
       .text(function(d) {return d[1];});
   subjectSel.on("change", function change() {
-    d3.json(this.options[this.selectedIndex].value, function(data) { return window.viz.update(data); });
+    d3.json(this.options[this.selectedIndex].value, function(data) { return viz.update(data); });
   });
-
-
 </script>
+
+<div id="visualization"></div>
+
 
 <h4 style="margin-top: 30px">Invocation Example</h4>
 {% highlight javascript %}{{page.sample_call}}{% endhighlight %}
@@ -55,3 +51,11 @@ You are free to customize the visualization through optional parameters.
   </tbody>
 </table>
 {% endif %}
+
+<script>
+  SViz.init({ localesBasePath: "{{site.baseurl}}/js" });
+  var viz;
+  d3.json("{{site.baseurl}}/visualizations/{{page.path}}/example.json", function(data) {
+    viz = SViz.loadViz("{{ page.call }}", data, "#visualization" {{page.call_args}});
+  });
+</script>

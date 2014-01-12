@@ -2,6 +2,8 @@ name: SViz
 markdown: redcarpet
 pygments: true
 
+encoding: utf-8
+
 baseurl: /sviz
 
 visualizations:
