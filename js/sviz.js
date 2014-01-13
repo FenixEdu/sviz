@@ -216,6 +216,10 @@
 				return y*100/data.grades.length;
 			}
 
+			var percentFormat= function(number, rounding) {
+				return d3.round(number*100, rounding);
+			}
+
 			var lng = i18n.t("histogram", { returnObjectTrees: true });
 
 			/* Margins and SVG container */
@@ -226,9 +230,9 @@
 
 			var frame = d3.select(selector).append("svg")
 			  .attr("width", width1 + width2 + xgap + margin.left + margin.right)
-			  .attr("height", height + margin.top + margin.bottom);
+			  .attr("height", height + margin.top + margin.bottom+(opts.legend==="top"?20:0));
 			var svg = frame.append("g")
-			  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+			  .attr("transform", "translate(" + margin.left + "," + (margin.top+(opts.legend==="top"?20:0)) + ")");
 
 			/* Setting up scales and bins */
 			var x = d3.scale.linear();
@@ -249,8 +253,8 @@
 			  barWidth = barPossibleWidth * opts.barWidth;
 			  var roundingerror = width1 - barPossibleWidth*numBars;
 			  x.domain([data.minGrade-0.5, data.maxGrade+0.5])
-			    .rangeRound([numRanks*barPossibleWidth+roundingerror, width1]);
-			  xr.rangeRoundBands([roundingerror, numRanks*barPossibleWidth+roundingerror], 1-opts.barWidth);
+			    .rangeRound([numRanks*barPossibleWidth, width1-roundingerror]);
+			  xr.rangeRoundBands([0, numRanks*barPossibleWidth], 1-opts.barWidth);
 			}
 			setScales(data);
 			var values = util.binData(data, (opts.barNumbers!=="percent"));
@@ -283,7 +287,7 @@
 			    .data(values)
 			  .enter().append("g")
 			    .attr("class", highlightStudent(data))
- 			    .attr("title", function(d){ if(opts.tooltip!=false && opts.tipNumbers!='none') { return (opts.tipNumbers=='count' ? getCountFromPercent(d.y) : (d3.round(getPercentFromCount(d.y),2)+"%"));} })
+ 			    .attr("title", function(d){ if(opts.tooltip!=false && opts.tipNumbers!='none') { return (opts.tipNumbers=='count' ? getCountFromPercent(d.y) : (percentFormat(getPercentFromCount(d.y),2)+"%"));} })
 			    .attr("transform", function(d) { return "translate(" + x(d.x+0.5) + "," + y(d.y) + ")"; })
 			    .on('mouseover', function (d) {
 			      if(opts.details!=false) { schover.remove(); updateSideChart(d, sideValues.range([d.x, d.x+1])(d)); }
@@ -301,8 +305,7 @@
 			    .attr("y", 6)
 			    .attr("x", 0)
 			    .attr("text-anchor", "middle")
-			    //.text(function(d) { if(d.y!=0) {var val = getRightTypeOfNumber(d.y, opts.barNumbers); return (opts.barNumbers=='percent'? (d3.round(val+"%") : val);} });
-			    .text(function(d) { if(d.y!=0) { return (opts.barNumbers=='percent'? d3.round(d.y, 1)+"%" : d.y); } });
+			    .text(function(d) { if(d.y!=0) { return (opts.barNumbers=='percent'? percentFormat(d.y,0)+"%" : d.y); } });
 			}
 
 			/* Tooltip */
@@ -316,6 +319,7 @@
 			/* min Grade Line */
 			if(data.minRequiredGrade && opts.showMinGrade!=false) {
 			  svg.append("g")
+			    .attr("id", "minGradeLine")
 			    .attr("class", "line")
 			    .attr("transform", function(d) { return "translate(" + x(data.minRequiredGrade) + ", 0)"; })
 			    .append("line")
@@ -377,7 +381,7 @@
 			  var yAxis = d3.svg.axis()
 			    .scale(y)
 			    .orient("left")
-			    .tickFormat(function(d){return opts.barNumbers==="percent"? d3.round(d*100) : d;});
+			    .tickFormat(function(d){return opts.barNumbers==="percent"? percentFormat(d,0) : d;});
 
 			  var g = svg.append("g")
 			    .attr("class", "y axis")
@@ -401,14 +405,15 @@
 			}
 
 			/* Legend */
-			if(opts.legend!=false) {
+			if(opts.legend!=="none" && opts.legend!=="arrows") {
 			  var legend = svg.append("g")
-			    .attr("class", "legend")
-			    .attr("transform", "translate(0,0)");
+			    .attr("class", "legend");
 
+			    if(opts.legend==="side") {
+			      legend.attr("transform", "translate("+(width1-18)+",0)");
 			  var dy=0;
 			  if(data.minRequiredGrade && opts.showMinGrade!=false) {
-			    var l = legend.append("g").attr("transform", "translate("+(width1-18)+","+dy+")");
+			    var l = legend.append("g").attr("transform", "translate(0,"+dy+")");
 			    l.append("line")
 			      .attr("x2", 18)
 			      .attr("y1", 9)
@@ -423,7 +428,7 @@
 			    dy+=20;
 			  }
 			  if(opts.showMean!=false) {
-			    var l = legend.append("g").attr("transform", "translate("+(width1-18)+","+dy+")");
+			    var l = legend.append("g").attr("transform", "translate(0,"+dy+")");
 			    l.append("line")
 			      .attr("x2", 18)
 			      .attr("y1", 9)
@@ -438,7 +443,7 @@
 			    dy+=20;
 			  }
 			  if(data.student.id && opts.highlightStudent!=false) {
-			    var l = legend.append("g").attr("transform", "translate("+(width1-18)+","+dy+")");
+			    var l = legend.append("g").attr("transform", "translate(0,"+dy+")");
 			    l.append("rect")
 			      .attr("width", 18)
 			      .attr("height", 18)
@@ -450,12 +455,85 @@
 			      .style("text-anchor", "end")
 			      .text(lng['self-id']);
 			  }
-
+			    } else if(opts.legend==="top") {
+			      legend.attr("transform", "translate(500,-25)");
+			      var dx=0;
+			      if(data.minRequiredGrade && opts.showMinGrade!=false) {
+			        var l = legend.append("g").attr("transform", "translate(0,"+dx+")");
+			        l.append("line")
+			          .attr("x2", 18)
+			          .attr("y1", 9)
+			          .attr("y2", 9)
+			          .attr("class", "line");
+			        l.append("text")
+			          .attr("x", 26)
+			          .attr("y", 9)
+			          .attr("dy", ".35em")
+			          .text(lng['min-grade']);
+			        dx+=26+l.select("text")[0][0].getBBox().width+20;
+			      }
+			  if(opts.showMean!=false) {
+			    var l = legend.append("g").attr("transform", "translate("+dx+",0)");
+			    l.append("line")
+			      .attr("x2", 18)
+			      .attr("y1", 9)
+			      .attr("y2", 9)
+			      .attr("class", "mean");
+			    l.append("text")
+			      .attr("x", 26)
+			      .attr("y", 9)
+			      .attr("dy", ".35em")
+			      .text(lng['mean']);
+			    dx+=26+l.select("text")[0][0].getBBox().width+20;
+			  }
+			  if(data.student.id && opts.highlightStudent!=false) {
+			    var l = legend.append("g").attr("transform", "translate("+dx+",0)");
+			    l.append("rect")
+			      .attr("width", 18)
+			      .attr("height", 18)
+			      .style("fill", "purple");
+			    l.append("text")
+			      .attr("x", 26)
+			      .attr("y", 9)
+			      .attr("dy", ".35em")
+			      .text(lng['self-id']);
+			    }
+			  }
+			}
+			if(opts.legend==="arrows") {
+			  if(data.minRequiredGrade && opts.showMinGrade!=false) {
+			    d3.select("#minGradeLine").append("g")
+			      .attr("transform", "translate("+10+","+10+")")
+			      .append("text")
+			        .attr("x", -6)
+			        .attr("y", 9)
+			        .attr("dy", ".35em")
+			        .text(lng['min-grade']);
+			  }
+			  if(opts.showMean!=false) {
+			    d3.select(".mean").append("g")
+			      .attr("transform", "translate("+10+","+30+")")
+			      .append("text")
+			        .attr("x", -6)
+			        .attr("y", 9)
+			        .attr("dy", ".35em")
+			        .text(lng['mean']);
+			  }
+			  if(data.student.id && opts.highlightStudent!=false) {
+			    d3.select(".you").append("g")
+			      .attr("transform", "translate(0,-30)")
+			      .append("text")
+			      .attr("x", -6)
+			      .attr("y", 9)
+			      .attr("dy", ".35em")
+			      .style("text-anchor", "end")
+			      .text(lng['self-id']);
+			  }
 			}
 
 			/** Side Chart **/
 			if(opts.details!=false) {
-			  var sideChart = frame.append("g").attr("transform", "translate("+(margin.left+width1+xgap)+","+margin.top+")");
+			  var sideChart = frame.append("g").attr("transform", "translate("+(margin.left+width1+xgap)+","+(margin.top+(opts.legend==="top"?20:0))+")");
 
 			  /* Setting up scales */
 			  var x2 = d3.scale.linear()
@@ -608,14 +686,11 @@
 
 			  var newbar = bar.enter().append("g")
 			    .attr("class", highlightStudent(newData))
- 			    .attr("title", function(d){ if(opts.tooltip!=false && opts.tipNumbers!='none') { return (opts.tipNumbers=='count' ? getCountFromPercent(d.y) : (d3.round(getPercentFromCount(d.y),2)+"%"));} })
-			    .attr("transform", function(d) { return "translate(" + x(d.x+0.5) + "," + y(d.y) + ")"; })
 			    .on('mouseover', function (d) {
 			      if(opts.details!=false) { schover.remove(); updateSideChart(d, sideValues.range([d.x, d.x+1])(d)); }
 			      if(opts.table!=false) { thover.remove(); updateTable(d); }
 			    });
 			  newbar.append("rect");
-			  /* number inside bars */
 			  if(opts.barNumbers!='none') {
 			    newbar.append("text")
 			      .attr("dy", ".75em")
@@ -624,23 +699,24 @@
 			      .attr("text-anchor", "middle");
 			  }
 
-
 			  bar.transition().delay(delay).duration(duration)
 			    .attr("class", highlightStudent(newData))
 			    .attr("transform", function(d) { return "translate(" + x(d.x+0.5) + "," + y(d.y) + ")"; });
-
-
+			  bar.attr("title", function(d){ if(opts.tooltip!=false && opts.tipNumbers!='none') { return opts.tipNumbers=='count' ? getCountFromPercent(d.y) : (percentFormat(getPercentFromCount(d.y),2)+"%") ; } });
 			  bar.select("rect")
 			      .attr("x", 1- barWidth/2)
 			      .attr("width", barWidth -2)
 			      .attr("height", function(d) { return height - y(d.y); });
-
-			  bar.select("text").text(function(d) { if(d.y!=0) {return (opts.barNumbers=='percent' ? (d3.round((d.y*100/data.grades.length))+"%") : d.y);} });
-
+			  bar.select("text").text(function(d) { if(d.y!=0) { return (opts.barNumbers=='percent'? percentFormat(d.y,0)+"%" : d.y); } });
 
 			  bar.exit().remove();
 
-
+			  if(opts.tooltip!=false && opts.tipNumbers!='none') {
+			    $(".tip").qtip({
+			      style: "qtip-tipsy",
+			      position: { my: 'bottom middle', at: 'top middle'}
+			    });
+			  }
 
 			  //update minRequiredGrade
 			  if(data.minRequiredGrade && opts.showMinGrade!=false) {

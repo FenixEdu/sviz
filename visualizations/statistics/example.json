@@ -2,7 +2,7 @@
   "maxGrade": 20,
   "minRequiredGrade": 9,
   "notAttended": "NA",
-  "students": [
+  "grades": [
 	{"grade": 9.50  },
 	{"grade": 7.55  },
 	{"grade": 6.78  },
