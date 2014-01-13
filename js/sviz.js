@@ -283,11 +283,29 @@
 			  }
 			}
 
+			var setTooltip = function(barNumber) {
+			  if(opts.tooltip!=false) {
+			    if(opts.tipNumbers==="count") {
+			      if(opts.barNumbers==="percent") {
+			        return d3.round(getCountFromPercent(barNumber)*100);
+			      } else {
+			        return barNumber;
+			      }
+			    } else if(opts.tipNumbers==="percent") {
+			      if(opts.barNumbers==="percent") {
+			        return (percentFormat(barNumber,2)+"%");;
+			      } else {
+			        return (d3.round(getPercentFromCount(barNumber),2)+"%");
+			      }
+			    }
+			  }
+			}
+
 			var bar = svg.selectAll(".bar")
 			    .data(values)
 			  .enter().append("g")
 			    .attr("class", highlightStudent(data))
- 			    .attr("title", function(d){ if(opts.tooltip!=false && opts.tipNumbers!='none') { return (opts.tipNumbers=='count' ? getCountFromPercent(d.y) : (percentFormat(getPercentFromCount(d.y),2)+"%"));} })
+ 			    .attr("title", function(d){ return setTooltip(d.y);} )
 			    .attr("transform", function(d) { return "translate(" + x(d.x+0.5) + "," + y(d.y) + ")"; })
 			    .on('mouseover', function (d) {
 			      if(opts.details!=false) { schover.remove(); updateSideChart(d, sideValues.range([d.x, d.x+1])(d)); }
@@ -702,7 +720,7 @@
 			  bar.transition().delay(delay).duration(duration)
 			    .attr("class", highlightStudent(newData))
 			    .attr("transform", function(d) { return "translate(" + x(d.x+0.5) + "," + y(d.y) + ")"; });
-			  bar.attr("title", function(d){ if(opts.tooltip!=false && opts.tipNumbers!='none') { return opts.tipNumbers=='count' ? getCountFromPercent(d.y) : (percentFormat(getPercentFromCount(d.y),2)+"%") ; } });
+			  bar.attr("title", function(d){ return setTooltip(d.y);} );
 			  bar.select("rect")
 			      .attr("x", 1- barWidth/2)
 			      .attr("width", barWidth -2)
@@ -716,6 +734,7 @@
 			      style: "qtip-tipsy",
 			      position: { my: 'bottom middle', at: 'top middle'}
 			    });
+			    //$('.tip').qtip('api').updateContent('New content')
 			  }
 
 			  //update minRequiredGrade
@@ -732,11 +751,11 @@
 			  if(opts.details!=false) { resetSideChart(); }
 			  if(opts.table!=false) { resetTable(); }
 			};
-	 	},
+		},
 
-	 	update: function(newData, opts) {
-	 		this.myUpdate(newData);
-	 	}
+		update: function(newData, opts) {
+			this.myUpdate(newData);
+		}
 
 	});
 
