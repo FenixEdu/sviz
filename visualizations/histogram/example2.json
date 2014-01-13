@@ -2,7 +2,6 @@
   "maxGrade": 20,
   "minRequiredGrade": 20,
   "student": {"id":"341"},
-  "ranks": ["NA", "RE"],
   "grades": [
 	{ "id": "734", "name": "Harry Wallington", "photo": "imgs/avatar_male.jpg", "grade": 3.8 },
 	{ "id": "738", "name": "Andrea Bleckley", "photo": "imgs/avatar_female.jpg", "grade": 9.5 },

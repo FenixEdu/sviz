@@ -4,7 +4,7 @@ path: histogram
 title: Histogram
 description: An histogram of the marks obtained in an evaluation. This visualization has optional detailed side and table views when hovering the main chart.
 call: showHistogram
-call_args: ", {barNumbers: 'count', xAxisLabel: true, barWidth: .9}"
+call_args: ", {barNumbers: 'percent', xAxisLabel: true, barWidth: .9, legend:'arrows'}"
 sample_call: 'SViz.showHistogram("data.json", "#visualization", {width: 1000});'
 opts:
   - - details

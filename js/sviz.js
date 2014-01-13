@@ -319,6 +319,7 @@
 			/* min Grade Line */
 			if(data.minRequiredGrade && opts.showMinGrade!=false) {
 			  svg.append("g")
+			    .attr("id", "minGradeLine")
 			    .attr("class", "line")
 			    .attr("transform", function(d) { return "translate(" + x(data.minRequiredGrade) + ", 0)"; })
 			    .append("line")
@@ -404,7 +405,7 @@
 			}
 
 			/* Legend */
-			if(opts.legend!=false) {
+			if(opts.legend==="side") {
 			  var legend = svg.append("g")
 			    .attr("class", "legend")
 			    .attr("transform", "translate(0,0)");
@@ -453,7 +454,36 @@
 			      .style("text-anchor", "end")
 			      .text(lng['self-id']);
 			  }
-
+			}
+			if(opts.legend==="arrows") {
+			  if(data.minRequiredGrade && opts.showMinGrade!=false) {
+			    d3.select("#minGradeLine").append("g")
+			      .attr("transform", "translate("+10+","+10+")")
+			      .append("text")
+			        .attr("x", -6)
+			        .attr("y", 9)
+			        .attr("dy", ".35em")
+			        .text(lng['min-grade']);
+			  }
+			  if(opts.showMean!=false) {
+			    d3.select(".mean").append("g")
+			      .attr("transform", "translate("+10+","+30+")")
+			      .append("text")
+			        .attr("x", -6)
+			        .attr("y", 9)
+			        .attr("dy", ".35em")
+			        .text(lng['mean']);
+			  }
+			  if(data.student.id && opts.highlightStudent!=false) {
+			    d3.select(".you").append("g")
+			      .attr("transform", "translate(0,-30)")
+			      .append("text")
+			      .attr("x", -6)
+			      .attr("y", 9)
+			      .attr("dy", ".35em")
+			      .style("text-anchor", "end")
+			      .text(lng['self-id']);
+			  }
 			}
 
 			/** Side Chart **/

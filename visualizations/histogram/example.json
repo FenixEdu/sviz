@@ -1,5 +1,5 @@
 { "minGrade": 0,
-  "maxGrade": 10,
+  "maxGrade": 20,
   "minRequiredGrade": 9.5,
   "ranks": ["NA"],
   "student": {"id":"341"},
