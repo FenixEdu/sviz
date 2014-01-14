@@ -1181,12 +1181,12 @@
 
 			var lng = i18n.t("bubbles", { returnObjectTrees: true });
 
-			var margin = {top: 20, right: 400, bottom: 0, left: 20};
-			var width = 800;
+			var margin = { top: 20, right: 400, bottom: 0, left: 20};
+			var width = 600;
 			var height = (data.entries.length*20)+15;
 
-			var start_year = data["start-year"],
-				end_year = data["end-year"];
+			var start_year = data["start-year"];
+			var end_year = data["end-year"];
 
 			var c = d3.scale.category20c();
 
@@ -1217,7 +1217,7 @@
 				.call(xAxis);
 
 			for (var j = 0; j < data.entries.length; j++) {
-				var g = svg.append("g").attr("class","journal");
+				var g = svg.append("g").attr("class","bubble");
 
 				var circles = g.selectAll("circle")
 					.data(data.entries[j]['years'])
@@ -1230,8 +1230,8 @@
 					.append("text");
 
 				var rScale = d3.scale.linear()
-					.domain([0, d3.max(data.entries[j]['years'], function(d) { return d[1]; })])
-					.range([3, 9]);
+					.domain([0, d3.max(data.entries[j]['years'], function(d) { return (d[1]/(d[1]+d[2]+d[3]))*100; })])
+					.range([3, 7]);
 
 				
 				circles.attr("cx", function(d, i) { return xScale(d[0]); })
@@ -1371,8 +1371,7 @@
 	};
 
 	SViz.loadViz = function(vizName, data, selector, opts) {
-		console.log("Loading viz");
-
+		log.debug("Loading vizualization", {vizName: vizName, data: data, selector: selector, opts: opts });
 		if(svizIsNotInitialized) {
 			log.debug("SViz is not initialized. Initializing...");
 			initializeSViz();
