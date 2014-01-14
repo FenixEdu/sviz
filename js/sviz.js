@@ -210,10 +210,10 @@
 				}
 			}
 			var getCountFromPercent = function (y) {
-				return y*data.grades.length/100;
+				return y*data.grades.length;
 			}
 			var getPercentFromCount = function (y) {
-				return y*100/data.grades.length;
+				return y/data.grades.length;
 			}
 
 			var percentFormat= function(number, rounding) {
@@ -632,7 +632,7 @@
 			  transition.select(".xr").call(xrAxis);
 			  transition.select(".y").call(yAxis);
 
-
+			  $(".tip").attr("oldtitle", null);
 
 			  //changing bars around
 			  var bar = svg.selectAll(".bar")
@@ -686,6 +686,12 @@
 			  //updating detailed views
 			  if(opts.details!=false) { resetSideChart(); }
 			  if(opts.table!=false) { resetTable(); }
+
+			    $(".tip").qtip({
+			      style: "qtip-tipsy",
+			      position: { my: 'bottom middle', at: 'top middle'}
+			    });
+
 			};
 	 	},
 
@@ -1230,13 +1236,13 @@
 					.append("text");
 
 				var rScale = d3.scale.linear()
-					.domain([0, d3.max(data.entries[j]['years'], function(d) { return (d[1]/(d[1]+d[2]+d[3]))*100; })])
-					.range([3, 7]);
+					.domain([0, d3.max(data.entries[j]['years'], function(d) { debugger; return (d[1]/(d[1]+d[2]+d[3]))*100; })])
+					.range([3, 9]);
 
 				
 				circles.attr("cx", function(d, i) { return xScale(d[0]); })
 						.attr("cy", j*20+20)
-						.attr("r", function(d) { return rScale(d[1]); })
+						.attr("r", function(d) { return rScale((d[1]/(d[1]+d[2]+d[3]))*100); })
 						.attr("class", "tip")
 						.attr("title", function(d) { var perc = d3.round((d[1]/(d[1]+d[2]+d[3]))*100, 0); return "<center>"+perc+"%<br>"+lng["approved"]+"</center>" })
 						.style("cursor", "pointer")
