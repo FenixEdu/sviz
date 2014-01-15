@@ -1052,7 +1052,11 @@
 		      .on("mouseout", function(d) {
 		      	$(this).attr("style", "opacity: 0.3");
 		      	$(".sunburst-own-grade").attr("style", "opacity: 1");
-		      	var text = (studentD.studentGradeValue !== "RE" && studentD.studentGradeValue !== "NE") ? studentD.studentGradeValue : lng[studentD.name];
+  				if(studentD) {
+			      	var text = (studentD.studentGradeValue !== "RE" && studentD.studentGradeValue !== "NE") ? studentD.studentGradeValue : lng[studentD.name];
+				} else {
+					var text = lng["no-eval"];
+				}
 		      	$(".sunburst-percentage", selector).text(text);
 		      	$(".sunburst-percentage", selector).attr("y", 10);
 		      	$(".sunburst-text", selector).text("");
@@ -1067,7 +1071,11 @@
 				.attr("class", "sunburst-text")
 				.attr("text-anchor", "middle");
 
-	      	var text = (studentD.studentGradeValue !== "RE" && studentD.studentGradeValue !== "NE") ? studentD.studentGradeValue : lng[studentD.name];
+			if(studentD) {
+		      	var text = (studentD.studentGradeValue !== "RE" && studentD.studentGradeValue !== "NE") ? studentD.studentGradeValue : lng[studentD.name];
+			} else {
+				var text = lng["no-eval"];
+			}
 			$(".sunburst-percentage", selector).text(text);
 	      	$(".sunburst-percentage", selector).attr("y", 10);
 	      	$(".sunburst-text", selector).text("");
