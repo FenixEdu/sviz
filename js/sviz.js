@@ -210,10 +210,10 @@
 				}
 			}
 			var getCountFromPercent = function (y) {
-				return y*data.grades.length/100;
+				return y*data.grades.length;
 			}
 			var getPercentFromCount = function (y) {
-				return y*100/data.grades.length;
+				return y/data.grades.length;
 			}
 
 			var percentFormat= function(number, rounding) {
@@ -695,7 +695,7 @@
 			  transition.select(".xr").call(xrAxis);
 			  transition.select(".y").call(yAxis);
 
-
+			  $(".tip").attr("oldtitle", null);
 
 			  //changing bars around
 			  var bar = svg.selectAll(".bar")
@@ -750,6 +750,12 @@
 			  //updating detailed views
 			  if(opts.details!=false) { resetSideChart(); }
 			  if(opts.table!=false) { resetTable(); }
+
+			    $(".tip").qtip({
+			      style: "qtip-tipsy",
+			      position: { my: 'bottom middle', at: 'top middle'}
+			    });
+
 			};
 		},
 
@@ -1110,7 +1116,11 @@
 		      .on("mouseout", function(d) {
 		      	$(this).attr("style", "opacity: 0.3");
 		      	$(".sunburst-own-grade").attr("style", "opacity: 1");
-		      	var text = (studentD.studentGradeValue !== "RE" && studentD.studentGradeValue !== "NE") ? studentD.studentGradeValue : lng[studentD.name];
+  				if(studentD) {
+			      	var text = (studentD.studentGradeValue !== "RE" && studentD.studentGradeValue !== "NE") ? studentD.studentGradeValue : lng[studentD.name];
+				} else {
+					var text = lng["no-eval"];
+				}
 		      	$(".sunburst-percentage", selector).text(text);
 		      	$(".sunburst-percentage", selector).attr("y", 10);
 		      	$(".sunburst-text", selector).text("");
@@ -1125,7 +1135,11 @@
 				.attr("class", "sunburst-text")
 				.attr("text-anchor", "middle");
 
-	      	var text = (studentD.studentGradeValue !== "RE" && studentD.studentGradeValue !== "NE") ? studentD.studentGradeValue : lng[studentD.name];
+			if(studentD) {
+		      	var text = (studentD.studentGradeValue !== "RE" && studentD.studentGradeValue !== "NE") ? studentD.studentGradeValue : lng[studentD.name];
+			} else {
+				var text = lng["no-eval"];
+			}
 			$(".sunburst-percentage", selector).text(text);
 	      	$(".sunburst-percentage", selector).attr("y", 10);
 	      	$(".sunburst-text", selector).text("");
@@ -1285,12 +1299,12 @@
 
 			var lng = i18n.t("bubbles", { returnObjectTrees: true });
 
-			var margin = {top: 20, right: 400, bottom: 0, left: 20};
-			var width = 800;
+			var margin = { top: 20, right: 400, bottom: 0, left: 20};
+			var width = 600;
 			var height = (data.entries.length*20)+15;
 
-			var start_year = data["start-year"],
-				end_year = data["end-year"];
+			var start_year = data["start-year"];
+			var end_year = data["end-year"];
 
 			var c = d3.scale.category20c();
 
@@ -1321,7 +1335,7 @@
 				.call(xAxis);
 
 			for (var j = 0; j < data.entries.length; j++) {
-				var g = svg.append("g").attr("class","journal");
+				var g = svg.append("g").attr("class","bubble");
 
 				var circles = g.selectAll("circle")
 					.data(data.entries[j]['years'])
@@ -1334,13 +1348,13 @@
 					.append("text");
 
 				var rScale = d3.scale.linear()
-					.domain([0, d3.max(data.entries[j]['years'], function(d) { return d[1]; })])
+					.domain([0, d3.max(data.entries[j]['years'], function(d) { debugger; return (d[1]/(d[1]+d[2]+d[3]))*100; })])
 					.range([3, 9]);
 
 				
 				circles.attr("cx", function(d, i) { return xScale(d[0]); })
 						.attr("cy", j*20+20)
-						.attr("r", function(d) { return rScale(d[1]); })
+						.attr("r", function(d) { return rScale((d[1]/(d[1]+d[2]+d[3]))*100); })
 						.attr("class", "tip")
 						.attr("title", function(d) { var perc = d3.round((d[1]/(d[1]+d[2]+d[3]))*100, 0); return "<center>"+perc+"%<br>"+lng["approved"]+"</center>" })
 						.style("cursor", "pointer")
@@ -1478,6 +1492,9 @@
 	};
 
 	SViz.loadViz = function(vizName, data, selector, opts) {
+
+		log.debug("Loading vizualization", {vizName: vizName, data: data, selector: selector, opts: opts });
+
 		if(svizIsNotInitialized) {
 			log.debug("SViz is not initialized. Initializing...");
 			initializeSViz();
