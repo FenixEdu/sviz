@@ -1230,6 +1230,46 @@
 		}
 	});
 
+	var approvalRate = Visualization.extend({
+
+		initialize: function(data, selector, opts) {
+			this.data = data;
+			this.selector = selector;
+			this.opts = opts;
+		},
+
+		render: function() {
+			var data = this.data;
+			var selector = this.selector;
+			var opts = this.opts;
+
+			if(!opts) var opts={};
+
+			var lng = i18n.t("approval-rate", { returnObjectTrees: true });
+
+			/* Margins and SVG container */
+			var margin = {top: 10, right: 10, bottom: 20, left: 30},
+				width = 570 - margin.left - margin.right,
+				height = 20 + data.length*50 - margin.top - margin.bottom;
+
+			var frame = d3.select(selector).append("svg")
+			  .attr("width", width + margin.left + margin.right)
+			  .attr("height", height + margin.top + margin.bottom+(opts.legend==="top"?20:0));
+			var svg = frame.append("g")
+			  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+			svg.append("rect")
+			  .attr("class", "bg")
+			  .attr("width", width)
+			  .attr("height", height);
+			svg.append("h4").text(lng["title"]);
+		},
+
+		update: function(newData, opts) {
+			//this.myUpdate(newData);
+		}
+	});
+
 	var bubbleChart = Visualization.extend({
 
 		initialize: function(data, selector, opts) {
@@ -1404,6 +1444,9 @@
 		},
 		showStudentProgress : function(data, selector, opts) {
 			return progressBars(data, selector, opts);
+		},
+		showApprovalRate : function(data, selector, opts) {
+			return approvalRate(data, selector, opts);
 		},
 		showOverallStatistics : function(data, selector, opts) {
 			return overallStatisticsVisualization(data, selector, opts);

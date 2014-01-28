@@ -9,6 +9,8 @@ baseurl: /sviz
 visualizations:
   - name: Progress
     path: progress
+  - name: Approval Rate
+    path: approval_rate
   - name: Overall Statistics
     path: statistics2
   - name: Course Donuts
