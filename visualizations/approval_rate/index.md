@@ -4,7 +4,7 @@ path: approval_rate
 title: Approval Rate
 description: Rate of approved subjects by period (semester), comparing to enrolled subjects.
 call: showApprovalRate
-call_args: ""
+call_args: ", {classic:true, width:700}"
 sample_call: SViz.loadViz("showStudentProgress", "data.json", "#visualization");
 opts:
   - - width

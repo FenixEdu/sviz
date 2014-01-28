@@ -1261,7 +1261,7 @@
 			if(!opts.width) {opts.width=600;} else if(opts.width<=300) {log.info("[Approval Rate] Option width has a small value. The recommended value is "+opts.width+" or greater.");}
 			if(!opts.barWidth) {opts.barWidth=0.9;} else if(opts.barWidth>1 || opts.barWidth<=0) {opts.barWidth=0.9; log.info("[Approval Rate] Option barWidth has an impossible value. It must be between ]0;1]. Setting to default value of "+opts.barWidth+".");}
 			if(!opts.blockWidth) {opts.blockWidth=50;} else if(opts.blockWidth<=5) {opts.blockWidth=50; log.info("[Approval Rate] Option blockWidth has an impossible value. It must be above 5. Setting to default value of "+opts.blockWidth+"px.");}
-			if(!opts.blockPadding) {opts.blockPadding=10;} else if(opts.blockPadding<=0) {opts.blockPadding=10; log.info("[Approval Rate] Option blockPadding has a negative value. Setting to default value of "+opts.blockPadding+"px.");}
+			if(!opts.blockPadding) {opts.blockPadding=8;} else if(opts.blockPadding<=0) {opts.blockPadding=8; log.info("[Approval Rate] Option blockPadding has a negative value. Setting to default value of "+opts.blockPadding+"px.");}
 			if(!opts.labelSize) {opts.labelSize=150;}
 
 			var lng = i18n.t("approval-rate", { returnObjectTrees: true });
@@ -1269,7 +1269,7 @@
 			/* Margins and SVG container */
 			var margin = {top: 10, right: 10, bottom: 20, left: 30},
 				width = opts.width - margin.left - margin.right,
-				height = 60 + data.length*opts.blockWidth + (opts.legend!=false?28:5);
+				height = 70 + data.length*opts.blockWidth + (opts.legend!=false?28:5);
 
 			var frame = d3.select(selector).append("svg")
 			  .attr("width", width + margin.left + margin.right)
@@ -1278,20 +1278,25 @@
 			  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 			/* Background Rectangle */
+			if(opts.classic==true) {
 			svg.append("rect")
 			  .attr("class", "bg")
 			  .attr("width", width)
 			  .attr("height", height);
+			}
 
+			/* Graph Area */
 			var graph = svg.append("g")
-			  .attr("transform", "translate(" + opts.labelSize + "," + 60 + ")"); // TODO  opts.labelSize??   dynamic label max size
+			  .attr("transform", "translate(" + opts.labelSize + "," + 70 + ")"); // TODO  opts.labelSize??   dynamic label max size
 			var graphWidth = width - 5 - opts.labelSize;
 			var graphHeight = data.length*opts.blockWidth;
 
+			if(opts.classic==true) {
 			graph.append("rect")
 			  .attr("class", "chart")
 			  .attr("width", graphWidth)
 			  .attr("height", graphHeight);
+			}
 
 			/* Title */
 			svg.append("text")
@@ -1325,12 +1330,12 @@
 			    .attr("class", "block")
 			    .attr("transform", function(d) { return "translate(0," + x(d.period) + ")"; }); // translate in height
 			block.append("rect")
-			  .attr("class", "enroled")
+			  .attr("class", (opts.classic==true?"enroled-classic":"enroled"))
 			  .attr("y", opts.blockPadding+barPadding)
 			  .attr("height", barWidth)
 			  .attr("width", function(d) { return y(d.enroled); });
 			block.append("rect")
-			  .attr("class", "approved")
+			  .attr("class", (opts.classic==true?"approved-classic":"approved"))
 			  .attr("y", opts.blockPadding+barPossibleWidth+barPadding)
 			  .attr("height", barWidth)
 			  .attr("width", function(d) { return y(d.approved); });
@@ -1377,7 +1382,7 @@
 			  l.append("rect")
 			    .attr("width", squaresize)
 			    .attr("height", squaresize)
-			    .attr("class", "enroled");
+			    .attr("class", (opts.classic==true?"enroled-classic":"enroled"));
 			  l.append("text")
 			    .attr("x", squaresize+8)
 			    .attr("y", 9)
@@ -1387,7 +1392,7 @@
 			  l.append("rect")
 			    .attr("width", squaresize)
 			    .attr("height", squaresize)
-			    .attr("class", "approved");
+			    .attr("class", (opts.classic==true?"approved-classic":"approved"));
 			  l.append("text")
 			    .attr("x", squaresize+8)
 			    .attr("y", 9)
@@ -1395,7 +1400,7 @@
 			    .text(lng['legend-approved']);
 
 			  var legendWidth=legend[0][0].getBBox().width;
-			  legend.attr("transform", "translate("+ ((width-legendWidth)/2) +","+ (60 + data.length*opts.blockWidth + 5) + ")");
+			  legend.attr("transform", "translate("+ (opts.classic==true?((width-legendWidth)/2):(width-legendWidth)) +","+ (70 + data.length*opts.blockWidth + 5) + ")");
 			}
 		},
 

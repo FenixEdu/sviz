@@ -111,8 +111,10 @@ svg foreignobject body{background-color:#FFF}
 .chart{fill:white}
 .axis path,.axis line{fill:none;stroke:#000;shape-rendering:crispEdges}
 .label{text-anchor:end}
-.approved{fill:bisque}
-.enroled{fill:lightblue}
+.approved{fill:#6ac871}
+.enroled{fill:steelblue}
+.approved-classic{fill:bisque}
+.enroled-classic{fill:lightblue}
 .boxplot-line{stroke:#000;stroke-dasharray:5,5}
 .boxplot-quantile-line{stroke:#000}
 .bubbles-label{font-size:12px;font-weight:bold;cursor:pointer}
