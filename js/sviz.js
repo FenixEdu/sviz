@@ -1302,7 +1302,6 @@
 			  .text(lng["title"]);
 
 			/* Setting up scales */
-			console.log(data);
 			var x = d3.scale.ordinal()
 			  .rangeRoundBands([0, graphHeight]);
 
@@ -1317,6 +1316,24 @@
 				y.domain([0, d3.max(data, function(d) { return d.enroled; })]) // assumes no student has more approved than enroled subjects
 			}
 			setScales(data);
+
+			/* Bars */
+			var barPadding = (1-opts.barWidth)*barPossibleWidth;
+			var block = graph.selectAll(".block")
+			    .data(data)
+			  .enter().append("g")
+			    .attr("class", "block")
+			    .attr("transform", function(d) { return "translate(0," + x(d.period) + ")"; }); // translate in height
+			block.append("rect")
+			  .attr("y", opts.blockPadding+barPadding)
+			  .attr("height", barWidth)
+			  .attr("width", function(d) { return y(d.enroled); })
+			  .style("fill", "lightblue");//function(d) { return color(d.name); });
+			block.append("rect")
+			  .attr("y", opts.blockPadding+barPossibleWidth+barPadding)
+			  .attr("height", barWidth)
+			  .attr("width", function(d) { return y(d.approved); })
+			  .style("fill", "bisque");
 
 			/* x Axis */
 			if(opts.xAxis!=false) {
