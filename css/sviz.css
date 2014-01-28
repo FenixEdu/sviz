@@ -108,6 +108,7 @@ svg foreignobject body{background-color:#FFF}
 .progress-main-completed{fill:#008000}
 .progress-main-incomplete{fill:#f60}
 .bg{fill:#f5f5f5}
+.chart{fill:white}
 .boxplot-line{stroke:#000;stroke-dasharray:5,5}
 .boxplot-quantile-line{stroke:#000}
 .bubbles-label{font-size:12px;font-weight:bold;cursor:pointer}

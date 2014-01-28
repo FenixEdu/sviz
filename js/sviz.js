@@ -10,7 +10,7 @@
 
 	var i18nOpts = {
 		fallbackLng: 'en',
-		lng: 'en',
+		lng: 'pt',
 		localesRelPath: '/locales/__lng__/__ns__.json',
 		localesBasePath: '/js',
 		getAsync: false,
@@ -1258,25 +1258,54 @@
 			var opts = this.opts;
 
 			if(!opts) var opts={};
+			if(!opts.width) {opts.width=600;} else if(opts.width<=300) {log.info("[Approval Rate] Option width has a small value. The recommended value is "+opts.width+" or greater.");}
+			if(!opts.barWidth) {opts.barWidth=0.9;} else if(opts.barWidth>1 || opts.barWidth<=0) {opts.barWidth=0.9; log.info("[Approval Rate] Option barWidth has an impossible value. It must be between ]0;1]. Setting to default value of "+opts.barWidth+".");}
+			if(!opts.blockWidth) {opts.blockWidth=50;} else if(opts.blockWidth<=5) {opts.blockWidth=50; log.info("[Approval Rate] Option blockWidth has an impossible value. It must be above 5. Setting to default value of "+opts.blockWidth+"px.");}
+			if(!opts.blockPadding) {opts.blockPadding=10;} else if(opts.blockPadding<=0) {opts.blockPadding=10; log.info("[Approval Rate] Option blockPadding has a negative value. Setting to default value of "+opts.blockPadding+"px.");}
 
 			var lng = i18n.t("approval-rate", { returnObjectTrees: true });
 
 			/* Margins and SVG container */
 			var margin = {top: 10, right: 10, bottom: 20, left: 30},
-				width = 570 - margin.left - margin.right,
-				height = 20 + data.length*50 - margin.top - margin.bottom;
+				width = opts.width - margin.left - margin.right,
+				height = 40 + data.length*opts.blockWidth + (opts.legend==="top"?25:5);
 
 			var frame = d3.select(selector).append("svg")
 			  .attr("width", width + margin.left + margin.right)
-			  .attr("height", height + margin.top + margin.bottom+(opts.legend==="top"?20:0));
+			  .attr("height", height + margin.top + margin.bottom);
 			var svg = frame.append("g")
 			  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+			/* Background Rectangle */
 			svg.append("rect")
 			  .attr("class", "bg")
 			  .attr("width", width)
 			  .attr("height", height);
-			svg.append("h4").text(lng["title"]);
+
+			var graph = svg.append("g")
+			  .attr("transform", "translate(" + 75 + "," + 40 + ")"); // TODO  75??   dynamic label max size
+			var graphWidth = width - 5 - 75;
+			var graphHeight = data.length*opts.blockWidth;
+
+			graph.append("rect")
+			  .attr("class", "chart")
+			  .attr("width", graphWidth)
+			  .attr("height", graphHeight);
+
+			/* Title */
+			svg.append("text")
+			  .attr("class", "h4")
+			  .attr("x", width/2)
+			  .attr("text-anchor", "middle")
+			  .attr("dy", 20)
+			  .text(lng["title"]);
+
+			/* Setting up scales */
+			console.log(data);
+			var x = d3.scale.ordinal();
+
+			var y = d3.scale.linear()
+			  .rangeRound([0, graphWidth]);
 		},
 
 		update: function(newData, opts) {
@@ -1348,7 +1377,7 @@
 					.append("text");
 
 				var rScale = d3.scale.linear()
-					.domain([0, d3.max(data.entries[j]['years'], function(d) { debugger; return (d[1]/(d[1]+d[2]+d[3]))*100; })])
+					.domain([0, d3.max(data.entries[j]['years'], function(d) { return (d[1]/(d[1]+d[2]+d[3]))*100; })])
 					.range([3, 9]);
 
 				

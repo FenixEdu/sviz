@@ -7,12 +7,18 @@ call: showApprovalRate
 call_args: ""
 sample_call: SViz.loadViz("showStudentProgress", "data.json", "#visualization");
 opts:
-  - - "[measure]"
-    - "true for all measures [total, approved, noattend, extent, mean, median]"
-    - true of false to display (or not) each measure
-  - - help
-    - true
-    - displays an help tooltip explaining each measure
+  - - width
+    - 600
+    - total width, including margins
+  - - blockWidth
+    - 50
+    - size for each block, including padding and 2 bars. In pixels.
+  - - blockPadding
+    - 10
+    - padding bellow and above the 2 bars. In pixels.
+  - - barWidth
+    - 0.9
+    - bar width in percent
 ---
 
 These are the required fields for this visualization to work. More fields can be added (for joint use with other visualizations), as long as this structure remains unchanged. If "notAttended" is not included, the number of not evaluated students will not be displayed.
