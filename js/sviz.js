@@ -1262,13 +1262,14 @@
 			if(!opts.barWidth) {opts.barWidth=0.9;} else if(opts.barWidth>1 || opts.barWidth<=0) {opts.barWidth=0.9; log.info("[Approval Rate] Option barWidth has an impossible value. It must be between ]0;1]. Setting to default value of "+opts.barWidth+".");}
 			if(!opts.blockWidth) {opts.blockWidth=50;} else if(opts.blockWidth<=5) {opts.blockWidth=50; log.info("[Approval Rate] Option blockWidth has an impossible value. It must be above 5. Setting to default value of "+opts.blockWidth+"px.");}
 			if(!opts.blockPadding) {opts.blockPadding=10;} else if(opts.blockPadding<=0) {opts.blockPadding=10; log.info("[Approval Rate] Option blockPadding has a negative value. Setting to default value of "+opts.blockPadding+"px.");}
+			if(!opts.labelSize) {opts.labelSize=150;}
 
 			var lng = i18n.t("approval-rate", { returnObjectTrees: true });
 
 			/* Margins and SVG container */
 			var margin = {top: 10, right: 10, bottom: 20, left: 30},
 				width = opts.width - margin.left - margin.right,
-				height = 40 + data.length*opts.blockWidth + (opts.legend==="top"?25:5);
+				height = 60 + data.length*opts.blockWidth + (opts.legend?25:5);
 
 			var frame = d3.select(selector).append("svg")
 			  .attr("width", width + margin.left + margin.right)
@@ -1283,8 +1284,8 @@
 			  .attr("height", height);
 
 			var graph = svg.append("g")
-			  .attr("transform", "translate(" + 75 + "," + 40 + ")"); // TODO  75??   dynamic label max size
-			var graphWidth = width - 5 - 75;
+			  .attr("transform", "translate(" + opts.labelSize + "," + 60 + ")"); // TODO  opts.labelSize??   dynamic label max size
+			var graphWidth = width - 5 - opts.labelSize;
 			var graphHeight = data.length*opts.blockWidth;
 
 			graph.append("rect")
@@ -1302,14 +1303,59 @@
 
 			/* Setting up scales */
 			console.log(data);
-			var x = d3.scale.ordinal();
+			var x = d3.scale.ordinal()
+			  .rangeRoundBands([0, graphHeight]);
 
 			var y = d3.scale.linear()
 			  .rangeRound([0, graphWidth]);
+
+			var barPossibleWidth, barWidth;
+			var setScales = function (data) {
+				barPossibleWidth = Math.floor( (opts.blockWidth - opts.blockPadding*2) / 2 );
+				barWidth = barPossibleWidth * opts.barWidth;
+				x.domain(data.map(function (d) { return d.period; }));
+				y.domain([0, d3.max(data, function(d) { return d.enroled; })]) // assumes no student has more approved than enroled subjects
+			}
+			setScales(data);
+
+			/* x Axis */
+			if(opts.xAxis!=false) {
+			  var xAxis = d3.svg.axis()
+			    .scale(x)
+			    .orient("left")
+			    .outerTickSize(0);
+
+			  graph.append("g")
+			    .attr("class", "x axis")
+			    .call(xAxis);
+			}
+
+			/* y Axis */
+			if(opts.yAxis!=false) {
+			  var yAxis = d3.svg.axis()
+			    .scale(y)
+			    .tickValues(d3.range( 0, d3.max(data,function(d){return d.enroled;})+1 ))
+			    .tickFormat(d3.format("d"))
+			    .orient("top");
+
+			  var g = graph.append("g")
+			    .attr("class", "y axis")
+			    .call(yAxis);
+
+			  if(opts.yAxisLabel!=false) {
+			    g.append("text")
+			      .attr("class", "label")
+			      .attr("x", graphWidth)
+			      .attr("y", "-25")
+			      .text(lng['axis-label']);
+			  }
+			}
 		},
 
 		update: function(newData, opts) {
 			//this.myUpdate(newData);
+			// setScales(data);
+			// yAxis.tickValues(d3.range( 0, d3.max(data,function(d){return d.enroled;})+1 ))
 		}
 	});
 
