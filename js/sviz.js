@@ -1269,7 +1269,7 @@
 			/* Margins and SVG container */
 			var margin = {top: 10, right: 10, bottom: 20, left: 30},
 				width = opts.width - margin.left - margin.right,
-				height = 60 + data.length*opts.blockWidth + (opts.legend?25:5);
+				height = 60 + data.length*opts.blockWidth + (opts.legend!=false?28:5);
 
 			var frame = d3.select(selector).append("svg")
 			  .attr("width", width + margin.left + margin.right)
@@ -1325,15 +1325,15 @@
 			    .attr("class", "block")
 			    .attr("transform", function(d) { return "translate(0," + x(d.period) + ")"; }); // translate in height
 			block.append("rect")
+			  .attr("class", "enroled")
 			  .attr("y", opts.blockPadding+barPadding)
 			  .attr("height", barWidth)
-			  .attr("width", function(d) { return y(d.enroled); })
-			  .style("fill", "lightblue");//function(d) { return color(d.name); });
+			  .attr("width", function(d) { return y(d.enroled); });
 			block.append("rect")
+			  .attr("class", "approved")
 			  .attr("y", opts.blockPadding+barPossibleWidth+barPadding)
 			  .attr("height", barWidth)
-			  .attr("width", function(d) { return y(d.approved); })
-			  .style("fill", "bisque");
+			  .attr("width", function(d) { return y(d.approved); });
 
 			/* x Axis */
 			if(opts.xAxis!=false) {
@@ -1366,6 +1366,36 @@
 			      .attr("y", "-25")
 			      .text(lng['axis-label']);
 			  }
+			}
+
+			/* Legend */
+			if(opts.legend!=false) {
+			  var squaresize = 18;
+			  var legend = svg.append("g")
+			    .attr("class", "legend");
+			  var l = legend.append("g");
+			  l.append("rect")
+			    .attr("width", squaresize)
+			    .attr("height", squaresize)
+			    .attr("class", "enroled");
+			  l.append("text")
+			    .attr("x", squaresize+8)
+			    .attr("y", 9)
+			    .attr("dy", ".35em")
+			    .text(lng['legend-enroled']);
+			  l = legend.append("g").attr("transform", "translate("+(squaresize+8+l.select("text")[0][0].getBBox().width+20)+",0)");
+			  l.append("rect")
+			    .attr("width", squaresize)
+			    .attr("height", squaresize)
+			    .attr("class", "approved");
+			  l.append("text")
+			    .attr("x", squaresize+8)
+			    .attr("y", 9)
+			    .attr("dy", ".35em")
+			    .text(lng['legend-approved']);
+
+			  var legendWidth=legend[0][0].getBBox().width;
+			  legend.attr("transform", "translate("+ ((width-legendWidth)/2) +","+ (60 + data.length*opts.blockWidth + 5) + ")");
 			}
 		},
 
