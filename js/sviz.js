@@ -6,7 +6,7 @@
 
 	var svizIsNotInitialized = true;
 
-	var DEBUG_MODE = true;
+	var DEBUG_MODE;
 
 	var i18nOpts = {
 		fallbackLng: 'en',
@@ -172,15 +172,15 @@
 		 	var totalStudents = data.grades.length;
 		 	var approvedStudents = d3.sum(data.grades, function(el) {return (el.grade >= data.minRequiredGrade);});
 		 	var noAttendStudents = d3.sum(data.grades, function(el) {return (el.grade === data.notAttended);});
-		  	if(opts.total!=false) {d3.select(selector).append("p").text( lng["total-students"] + totalStudents);}
-		  	if(opts.approved!=false) {d3.select(selector).append("p").text( lng["approved"]	+ d3.round(approvedStudents*100/totalStudents, 1) + "%  ("+approvedStudents+" "+i18n.t("students")+")");}
+		  	if(opts.total!==undefined) {d3.select(selector).append("p").text( lng["total-students"] + totalStudents);}
+		  	if(opts.approved!==undefined) {d3.select(selector).append("p").text( lng["approved"]	+ d3.round(approvedStudents*100/totalStudents, 1) + "%  ("+approvedStudents+" "+i18n.t("students")+")");}
 		  	if(data.notAttended && opts.noattend!=false) {
 		  		d3.select(selector).append("p")
 		  			.text( lng["no-attends"] + d3.round(noAttendStudents*100/totalStudents, 1) + "%  ("+noAttendStudents+" "+i18n.t("students")+")");
 		  	}
-		  	if(opts.mean!=false) {d3.select(selector).append("p").text( lng["mean"] + d3.round(d3.mean(data.grades, util.valuesInsideDomainOnly(data)), 2));}
-		  	if(opts.extent!=false) {d3.select(selector).append("p").text( lng["extent"] + d3.extent(data.grades, util.valuesInsideDomainOnly(data)));}
-		  	if(opts.median!=false) {d3.select(selector).append("p").text( lng["median"] + d3.round(d3.median(data.grades, util.valuesInsideDomainOnly(data)), 2));}
+		  	if(opts.mean!==undefined) {d3.select(selector).append("p").text( lng["mean"] + d3.round(d3.mean(data.grades, util.valuesInsideDomainOnly(data)), 2));}
+		  	if(opts.extent!==undefined) {d3.select(selector).append("p").text( lng["extent"] + d3.extent(data.grades, util.valuesInsideDomainOnly(data)));}
+		  	if(opts.median!==undefined) {d3.select(selector).append("p").text( lng["median"] + d3.round(d3.median(data.grades, util.valuesInsideDomainOnly(data)), 2));}
 		}
 	});
 
@@ -198,9 +198,9 @@
 			var opts = this.opts;
 
 			if(!opts) var opts={};
-			if(!opts.barWidth) {opts.barWidth=0.9;} else if(opts.barWidth>1 || opts.barWidth<=0) {opts.barWidth=0.9; log.info("[Histogram] Option barWidth has an impossible value. It must be between ]0;1]. Setting to default value of "+opts.barWidth+".");}
-			if(!opts.barNumbers) {opts.barNumbers="count";}
-			if(!opts.tipNumbers) {opts.tipNumbers="percent";}
+			if(opts.barWidth===undefined) {opts.barWidth=0.9;} else if(opts.barWidth>1 || opts.barWidth<=0) {opts.barWidth=0.9; log.info("[Histogram] Option barWidth has an impossible value. It must be between ]0;1]. Setting to default value of "+opts.barWidth+".");}
+			if(opts.barNumbers===undefined) {opts.barNumbers="count";}
+			if(opts.tipNumbers===undefined) {opts.tipNumbers="percent";}
 
 			var getRightTypeOfNumber = function (y, opt) {
 				if(opt === "count") {
@@ -1258,24 +1258,31 @@
 			var opts = this.opts;
 
 			if(!opts) var opts={};
-			if(!opts.width) {opts.width=600;} else if(opts.width<=300) {log.info("[Approval Rate] Option width has a small value. The recommended value is "+opts.width+" or greater.");}
-			if(!opts.barWidth) {opts.barWidth=0.9;} else if(opts.barWidth>1 || opts.barWidth<=0) {opts.barWidth=0.9; log.info("[Approval Rate] Option barWidth has an impossible value. It must be between ]0;1]. Setting to default value of "+opts.barWidth+".");}
-			if(!opts.blockWidth) {opts.blockWidth=50;} else if(opts.blockWidth<=5) {opts.blockWidth=50; log.info("[Approval Rate] Option blockWidth has an impossible value. It must be above 5. Setting to default value of "+opts.blockWidth+"px.");}
-			if(!opts.blockPadding) {opts.blockPadding=8;} else if(opts.blockPadding<=0) {opts.blockPadding=8; log.info("[Approval Rate] Option blockPadding has a negative value. Setting to default value of "+opts.blockPadding+"px.");}
-			if(!opts.labelSize) {opts.labelSize=150;}
+			if(opts.margin===undefined) {opts.margin={top: 10, right: 10, bottom: 20, left: 30};}
+			else{
+				if(opts.margin.top===undefined) {opts.margin.top=10;}
+				if(opts.margin.bottom===undefined) {opts.margin.bottom=20;}
+				if(opts.margin.left===undefined) {opts.margin.left=30;}
+				if(opts.margin.right===undefined) {opts.margin.right=10;}
+			}
+			if(opts.width===undefined) {opts.width=600;} else if(opts.width<=300) {log.info("[Approval Rate] Option width has a small value. The recommended value is "+opts.width+" or greater.");}
+			if(opts.barWidth===undefined) {opts.barWidth=0.9;} else if(opts.barWidth>1 || opts.barWidth<=0) {opts.barWidth=0.9; log.info("[Approval Rate] Option barWidth has an impossible value. It must be between ]0;1]. Setting to default value of "+opts.barWidth+".");}
+			if(opts.blockWidth===undefined) {opts.blockWidth=50;} else if(opts.blockWidth<=5) {opts.blockWidth=50; log.info("[Approval Rate] Option blockWidth has an impossible value. It must be above 5. Setting to default value of "+opts.blockWidth+"px.");}
+			if(opts.blockPadding===undefined) {opts.blockPadding=8;} else if(opts.blockPadding<=0) {opts.blockPadding=8; log.info("[Approval Rate] Option blockPadding has a negative value. Setting to default value of "+opts.blockPadding+"px.");}
+			if(opts.labelSize===undefined) {opts.labelSize=150;}
+			if(opts.titleclass===undefined) {opts.titleclass="h4";}
 
 			var lng = i18n.t("approval-rate", { returnObjectTrees: true });
 
 			/* Margins and SVG container */
-			var margin = {top: 10, right: 10, bottom: 20, left: 30},
-				width = opts.width - margin.left - margin.right,
-				height = 70 + data.length*opts.blockWidth + (opts.legend!=false?28:5);
+			var width = opts.width - opts.margin.left - opts.margin.right;
+			var height = 70 + data.periods.length*opts.blockWidth + (opts.legend!=false?28:5);
 
 			var frame = d3.select(selector).append("svg")
-			  .attr("width", width + margin.left + margin.right)
-			  .attr("height", height + margin.top + margin.bottom);
+			  .attr("width", width + opts.margin.left + opts.margin.right)
+			  .attr("height", height + opts.margin.top + opts.margin.bottom);
 			var svg = frame.append("g")
-			  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+			  .attr("transform", "translate(" + opts.margin.left + "," + opts.margin.top + ")");
 
 			/* Background Rectangle */
 			if(opts.classic==true) {
@@ -1289,7 +1296,7 @@
 			var graph = svg.append("g")
 			  .attr("transform", "translate(" + opts.labelSize + "," + 70 + ")"); // TODO  opts.labelSize??   dynamic label max size
 			var graphWidth = width - 5 - opts.labelSize;
-			var graphHeight = data.length*opts.blockWidth;
+			var graphHeight = data.periods.length*opts.blockWidth;
 
 			if(opts.classic==true) {
 			graph.append("rect")
@@ -1300,7 +1307,7 @@
 
 			/* Title */
 			svg.append("text")
-			  .attr("class", "h4")
+			  .attr("class", opts.titleclass)
 			  .attr("x", width/2)
 			  .attr("text-anchor", "middle")
 			  .attr("dy", 20)
@@ -1317,28 +1324,38 @@
 			var setScales = function (data) {
 				barPossibleWidth = Math.floor( (opts.blockWidth - opts.blockPadding*2) / 2 );
 				barWidth = barPossibleWidth * opts.barWidth;
-				x.domain(data.map(function (d) { return d.period; }));
-				y.domain([0, d3.max(data, function(d) { return d.enroled; })]) // assumes no student has more approved than enroled subjects
+				x.domain(data.map(function (d) { return d[0]; }));
+				y.domain([0, d3.max(data, function(d) { return d[1]; })]) // assumes no student has more approved than enroled subjects
 			}
-			setScales(data);
+			setScales(data.periods);
 
 			/* Bars */
 			var barPadding = (1-opts.barWidth)*barPossibleWidth;
 			var block = graph.selectAll(".block")
-			    .data(data)
+			    .data(data.periods)
 			  .enter().append("g")
 			    .attr("class", "block")
-			    .attr("transform", function(d) { return "translate(0," + x(d.period) + ")"; }); // translate in height
+			    .attr("transform", function(d) { return "translate(0," + x(d[0]) + ")"; }); // translate in height
 			block.append("rect")
-			  .attr("class", (opts.classic==true?"enroled-classic":"enroled"))
+			  .attr("class", (opts.classic==true?"enroled-classic":"enroled")+" tip")
+			  .attr("title", function(d){ return d[1];} )
 			  .attr("y", opts.blockPadding+barPadding)
 			  .attr("height", barWidth)
-			  .attr("width", function(d) { return y(d.enroled); });
+			  .attr("width", function(d) { return y(d[1]); });
 			block.append("rect")
-			  .attr("class", (opts.classic==true?"approved-classic":"approved"))
+			  .attr("class", (opts.classic==true?"approved-classic":"approved")+" tip")
+			  .attr("title", function(d){ return d[2];} )
 			  .attr("y", opts.blockPadding+barPossibleWidth+barPadding)
 			  .attr("height", barWidth)
-			  .attr("width", function(d) { return y(d.approved); });
+			  .attr("width", function(d) { return y(d[2]); });
+
+
+			if(opts.tooltip!=false) {
+			  $(".tip").qtip({
+			    style: "qtip-tipsy",
+			    position: { adjust: { x: 0, y: 0 }, target: 'mouse', my:'bottom left'}
+			  });
+			}
 
 			/* x Axis */
 			if(opts.xAxis!=false) {
@@ -1356,7 +1373,7 @@
 			if(opts.yAxis!=false) {
 			  var yAxis = d3.svg.axis()
 			    .scale(y)
-			    .tickValues(d3.range( 0, d3.max(data,function(d){return d.enroled;})+1 ))
+			    .tickValues(d3.range( 0, d3.max(data.periods,function(d){return d[1];})+1 ))
 			    .tickFormat(d3.format("d"))
 			    .orient("top");
 
@@ -1400,7 +1417,7 @@
 			    .text(lng['legend-approved']);
 
 			  var legendWidth=legend[0][0].getBBox().width;
-			  legend.attr("transform", "translate("+ (opts.classic==true?((width-legendWidth)/2):(width-legendWidth)) +","+ (70 + data.length*opts.blockWidth + 5) + ")");
+			  legend.attr("transform", "translate("+ (opts.classic==true?((width-legendWidth)/2):(width-legendWidth)) +","+ (70 + data.periods.length*opts.blockWidth + 5) + ")");
 			}
 		},
 
@@ -1507,10 +1524,7 @@
 			};
 
 			function circleMouseover(p) {
-				return function(d) {
-					console.log(p);
-					console.log(d);
-				}
+				// return function(d) {}
 			}
 
 			function mouseover(p) {
