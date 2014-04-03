@@ -27,6 +27,6 @@ Call visualizations to be inserted in containers:
 <div id="visualization"></div>
 <script>
   SViz.init({ lang: "en", localesBasePath: "../javaScript/sviz" });
-  SViz.loadViz("showCourses", "example.json", "#visualization");
+  SViz.loadViz("showCourses", "data.json", "#visualization");
 </script>
 {% endhighlight %}

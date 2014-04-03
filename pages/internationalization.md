@@ -4,7 +4,7 @@ title: Internationalization - FenixEdu™ SViz
 ---
 
 <h3>Internationalization</h3>
-<p class="help-block" style="margin-bottom: 20px">
+<p style="margin-bottom: 20px">
 The visualizations provided by this library have some static text that you can change and internationalize depending on the end-user's locale. SViz currently supports English (<code>'en'</code>) and Portuguese (<code>'pt'</code>).<br/>
 To support another language, you should create a folder <code>locales/[language-abbrv]/</code> and create the corresponding <code>translation.json</code> file. Use the Portuguese or English file as sample by copying and translating its contents.<br/>
 The files are structured as follows:

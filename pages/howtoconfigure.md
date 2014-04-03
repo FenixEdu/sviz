@@ -4,7 +4,7 @@ title: How to Configure - FenixEdu™ SViz
 ---
 
 <h3>How to Configure</h3>
-<p class="help-block" style="margin-bottom: 20px">
+<p style="margin-bottom: 20px">
 Most visualizations receive configuration parameters. The options are documented on each visualization's page and are used as in the following example:
 </p>
 <table class="table table-bordered table-condensed">

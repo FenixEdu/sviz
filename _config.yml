@@ -25,3 +25,7 @@ visualizations:
     path: sunburst
   - name: Bubbles
     path: bubbles
+  - name: Simple Stacked Bar
+    path: simple_stacked_bar
+  - name: Simple Donut
+    path: simple_donut
