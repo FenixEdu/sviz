@@ -60,5 +60,11 @@
     "cat1": "Not Evaluated",
     "cat2": "Negative Grades",
     "cat3": "Positive Grades"
+  },
+  "stacked-bar": {
+    "title": "Title",
+    "cat1": "Not Evaluated",
+    "cat2": "Negative Grades",
+    "cat3": "Positive Grades"
   }
 }

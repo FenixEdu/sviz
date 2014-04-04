@@ -60,5 +60,11 @@
     "cat1": "Não Avaliados",
     "cat2": "Reprovados",
     "cat3": "Aprovados"
+  },
+    "stacked-bar": {
+    "title": "Título",
+    "cat1": "Não Avaliados",
+    "cat2": "Reprovados",
+    "cat3": "Aprovados"
   }
 }

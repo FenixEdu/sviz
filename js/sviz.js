@@ -184,6 +184,118 @@
 		}
 	});
 
+	var simpleStackedBarVisualization = Visualization.extend({
+
+		initialize: function(data, selector, opts) {
+			this.data = data;
+			this.selector = selector;
+			this.opts = opts;
+		},
+
+		render: function() {
+			var data = this.data;
+			var selector = this.selector;
+			var opts = this.opts;
+
+			if(!opts) var opts={};
+			if(opts.margin===undefined) {opts.margin={top: 10, right: 10, bottom: 10, left: 10};}
+			else{
+				if(opts.margin.top===undefined) {opts.margin.top=10;}
+				if(opts.margin.right===undefined) {opts.margin.right=10;}
+				if(opts.margin.bottom===undefined) {opts.margin.bottom=10;}
+				if(opts.margin.left===undefined) {opts.margin.left=10;}
+			}
+			if(opts.width===undefined) {opts.width=300;} else if(opts.width<=10) {log.info("[Stacked Bar] Option width has a small value. The recommended value is "+opts.width+" or greater.");}
+			if(opts.height===undefined) {opts.height=75;} else if(opts.height<=2) {log.info("[Stacked Bar] Option height has a small value. The recommended value is "+opts.height+" or greater.");}
+			if(opts.barHeight===undefined) {opts.barHeight=30;} else if(opts.barHeight>opts.height) {log.info("[Stacked Bar] Option barHeight is bigger than the visualization height.");}
+			if(opts.titleclass===undefined) {opts.titleclass="h4";}
+
+			var lng = i18n.t("stacked-bar", { returnObjectTrees: true });
+
+			/* Margins and SVG container */
+			var width = opts.width - opts.margin.left - opts.margin.right;
+			var height = opts.height - opts.margin.top - opts.margin.bottom;
+
+			var frame = d3.select(selector).append("svg")
+			  .attr("width", opts.width)
+			  .attr("height", opts.height);
+			var svg = frame.append("g")
+			  .attr("transform", "translate(" + opts.margin.left + "," + opts.margin.top + ")");
+
+			/* Title */
+			if(opts.title!=false) {
+				svg.append("text")
+				  .attr("class", opts.titleclass)
+				  .attr("x", width/2)
+				  .attr("text-anchor", "middle")
+				  .attr("dy", 15)
+				  .text(lng["title"]);
+			}
+
+			/* Parsing json data and computing values */
+			data.bar = {};
+			data.bar.total = 0;
+			for (var key in data.calculated) {
+				if(data.calculated.hasOwnProperty(key)) data.bar.total += +data.calculated[key];
+			}
+			var prev = 0;
+			data.bar.values = Object.keys(data.calculated).map(function(name) {
+				var thisPercentage = d3.round( (+data.calculated[name])/data.bar.total*100, 1 );
+				prev += thisPercentage;
+				return {
+					label: name,
+					count: +data.calculated[name],
+					percentage: thisPercentage,
+					prev: prev - thisPercentage
+				};
+			});
+
+			/* Stacked Bars */
+			var segment = svg.selectAll(".stack")
+				  .data(data.bar.values)
+				.enter().append("g");
+			segment.append("rect")
+				.attr("title", function(d) { return "<center>"+lng[d.label]+"<br>"+d.percentage+"%<br/>"+d.count+"/"+data.bar.total+"</center>"; })
+				.attr("class", function(d) { return "tip stack stack-"+d.label; })
+				.attr("x", function(d) { return d.prev/100*width; })
+				.attr("width", function(d) { return d.percentage/100*width; })
+				.attr("y", (height/2+(opts.title!=false?30/2:0))-opts.barHeight/2)
+				.attr("height", opts.barHeight);
+
+			$(".tip").qtip({
+				style: "qtip-tipsy",
+				position: {
+				  target: 'mouse',
+				  adjust: { x: 15, y: 15 }
+				}
+			});
+
+			/* Legend */
+			if(opts.legend!=false) {
+				var legendSelector = opts.legendSelector || selector;
+				var legend = d3.select(legendSelector).append("svg")
+				  .attr("class", "legend-text")
+				  .attr("width", 150)
+				  .attr("height", height)
+					.selectAll("g")
+					  .data(data.bar.values)
+					.enter().append("g")
+					  .attr("transform", function(d, i) { return "translate("+(0)+"," + i * 20 + ")"; });
+
+				  legend.append("rect")
+				      .attr("width", 12)
+				      .attr("height", 12)
+				      .attr("class", function(d) { return "donut-"+d.label; });
+
+				  legend.append("text")
+				      .attr("x", 16)
+				      .attr("y", 6)
+				      .attr("dy", ".35em")
+				      .text( function(d) { return lng[d.label]; });
+			}
+		}
+	});
+
 	var histogramVisualization = Visualization.extend({
 
 		initialize: function(data, selector, opts) {
@@ -786,8 +898,8 @@
 				if(opts.margin.bottom===undefined) {opts.margin.bottom=10;}
 				if(opts.margin.left===undefined) {opts.margin.left=10;}
 			}
-			if(opts.width===undefined) {opts.width=150;} else if(opts.width<=300) {log.info("[Simple Donut] Option width has a small value. The recommended value is "+opts.width+" or greater.");}
-			if(opts.height===undefined) {opts.height=150;} else if(opts.height<=50) {log.info("[Simple Donut] Option height has a small value. The recommended value is "+opts.height+" or greater.");}
+			if(opts.width===undefined) {opts.width=150;} else if(opts.width<=25) {log.info("[Simple Donut] Option width has a small value. The recommended value is "+opts.width+" or greater.");}
+			if(opts.height===undefined) {opts.height=150;} else if(opts.height<=25) {log.info("[Simple Donut] Option height has a small value. The recommended value is "+opts.height+" or greater.");}
 			if(opts.titleclass===undefined) {opts.titleclass="h4";}
 			if(opts.radius===undefined) {opts.radius=Math.min(opts.width-opts.margin.left-opts.margin.right, opts.height-opts.margin.top-opts.margin.bottom-(opts.title!=false?30:0))/2;}
 			if(opts.innerRadius===undefined) {opts.innerRadius=opts.radius-20;}
@@ -814,7 +926,7 @@
 				  .text(lng["title"]);
 			}
 
-			/* Parsing json data and computing values */
+			/* Parsing json data and computing values if not previously calculated */
 			data.pie = {};
 			data.pie.total = 0;
 			for (var key in data.calculated) {

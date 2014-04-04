@@ -4,20 +4,32 @@ path: simple_stacked_bar
 title: Simple Stacked Bar
 description: This visualization provides a simple, all purpose, staked bar.
 call: showStackedBar
-call_args: ""
-sample_call: SViz.loadViz("showStackedBar", "data.json", "#visualization");
+call_args: ", {title:false, barHeight:30}"
+sample_call: SViz.loadViz("showStackedBar", "data.json", "#visualization", {title:false});
 opts:
   - - width
-    - the wrapping container width
-    - the width to be forced to the visualization.
+    - 150
+    - total width, including margins
 
   - - height
-    - the default aspect ratio computed with either the provided width or height
-    - the height to be forced to the visualization.
+    - 150
+    - total height, including margins
 
-  - - showLegend
+  - - barHeight
+    - 30
+    - bar height
+
+  - - title
     - true
-    - displays legend
+    - show title
+
+  - - titleclass
+    - h4
+    - css class for the title
+
+  - - legend
+    - true
+    - show legend
 
   - - legendSelector
     - the original selector
@@ -25,17 +37,11 @@ opts:
 ---
 
 {% highlight json %}
-{ "minGrade": 0,
-  "maxGrade": 20,
-  "minRequiredGrade": 9,
-  "notAttended": "NA",
-  "students": [
-  { "grade": 9.50  },
-  { "grade": 7.55  },
-  { "grade": 6.78  },
-  { "grade": "NA"  },
-  { "grade": 4.58  },
-  { "grade": 4.93  },
- ...
- ]}
+{ "calculated": {
+    "cat1": 74,
+    "cat2": 34,
+    "cat3": 21
+    ...
+  }
+}
 {% endhighlight %}
