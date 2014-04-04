@@ -779,97 +779,75 @@
 			var opts = this.opts;
 
 			if(!opts) var opts={};
-			if(opts.margin===undefined) {opts.margin={top: 10, right: 10, bottom: 20, left: 30};}
+			if(opts.margin===undefined) {opts.margin={top: 10, right: 10, bottom: 10, left: 10};}
 			else{
 				if(opts.margin.top===undefined) {opts.margin.top=10;}
 				if(opts.margin.right===undefined) {opts.margin.right=10;}
-				if(opts.margin.bottom===undefined) {opts.margin.bottom=20;}
-				if(opts.margin.left===undefined) {opts.margin.left=30;}
+				if(opts.margin.bottom===undefined) {opts.margin.bottom=10;}
+				if(opts.margin.left===undefined) {opts.margin.left=10;}
 			}
-			if(opts.width===undefined) {opts.width=600;} else if(opts.width<=300) {log.info("[Simple Donut] Option width has a small value. The recommended value is "+opts.width+" or greater.");}
-			if(opts.height===undefined) {opts.height=100;} else if(opts.height<=50) {log.info("[Simple Donut] Option height has a small value. The recommended value is "+opts.height+" or greater.");}
+			if(opts.width===undefined) {opts.width=150;} else if(opts.width<=300) {log.info("[Simple Donut] Option width has a small value. The recommended value is "+opts.width+" or greater.");}
+			if(opts.height===undefined) {opts.height=150;} else if(opts.height<=50) {log.info("[Simple Donut] Option height has a small value. The recommended value is "+opts.height+" or greater.");}
 			if(opts.titleclass===undefined) {opts.titleclass="h4";}
+			if(opts.radius===undefined) {opts.radius=Math.min(opts.width-opts.margin.left-opts.margin.right, opts.height-opts.margin.top-opts.margin.bottom-(opts.title!=false?30:0))/2;}
+			if(opts.innerRadius===undefined) {opts.innerRadius=opts.radius-20;}
 
 			var lng = i18n.t("simple-donut", { returnObjectTrees: true });
 
+			/* Margins and SVG container */
+			var width = opts.width - opts.margin.left - opts.margin.right;
+			var height = opts.height - opts.margin.top - opts.margin.bottom;
 
-			var ratio = 3/4;
-			var defaultRadius = 60;
-			var defaultInnerRaidus = 40;
+			var frame = d3.select(selector).append("svg")
+			  .attr("width", opts.width)
+			  .attr("height", opts.height);
+			var svg = frame.append("g")
+			  .attr("transform", "translate(" + opts.margin.left + "," + opts.margin.top + ")");
 
-			var radius = opts ? opts.radius || defaultRadius : defaultRadius;
-			var innerRadius = opts ? opts.innerRadius || defaultInnerRaidus : defaultInnerRaidus;
-
-			var width = opts ? opts.width || $(selector).width() :  $(selector).width();
-			var height = opts ? opts.height || (width*ratio) :  (width*ratio);
-
-			var legendSelector = opts ? opts.legendSelector || selector : selector;
-
-			var arc = d3.svg.arc()
-			    .outerRadius(radius)
-			    .innerRadius(innerRadius);
-
-			var pie = d3.layout.pie()
-			    .sort(null)
-			    .value(function(d) { return d.population; });
-
-			data.entries.forEach(function(d) {
-				var total = 0;
-				$.each(data.domain, function(i, el) {
-					total += +d[el];
-				});
-				d.total = total;
-				d.values = data.domain.map(function(name) {
-					var perc = d3.round((+d[name])/(+d["total"])*100,1)+"%";
-					return { name: name, population: +d[name], total: total, perc: perc};
-				});
-			});
-
-			/* Legend */
-			if(opts.legend!=false) {
-				var legend = d3.select(legendSelector).append("svg")
-				  .attr("class", "legend-text")
-				  .attr("width", 150)
-				  .attr("height", radius * 2)
-					.selectAll("g")
-					  .data(data.domain.slice().reverse())
-					.enter().append("g")
-					  .attr("transform", function(d, i) { return "translate("+(0)+"," + i * 20 + ")"; });
-
-				  legend.append("rect")
-				      .attr("width", 12)
-				      .attr("height", 12)
-				      .attr("class", function(d) { return "donut-"+d; });
-
-				  legend.append("text")
-				      .attr("x", 16)
-				      .attr("y", 6)
-				      .attr("dy", ".35em")
-				      .text( function(d) { return lng[d]; });
+			/* Title */
+			if(opts.title!=false) {
+				svg.append("text")
+				  .attr("class", opts.titleclass)
+				  .attr("x", width/2)
+				  .attr("text-anchor", "middle")
+				  .attr("dy", 15)
+				  .text(lng["title"]);
 			}
 
-			var svg = d3.select(selector).selectAll(".donut")
-				  .data(data.entries)
-				.enter().append("svg")
-				  .attr("class", "donut")
-				  .attr("width", radius * 2)
-				  .attr("height", radius * 2)
-				.append("g")
-				  .attr("transform", "translate(" + radius + "," + radius + ")");
+			/* Parsing json data and computing values */
+			data.pie = {};
+			data.pie.total = 0;
+			for (var key in data.calculated) {
+				if(data.calculated.hasOwnProperty(key)) data.pie.total += +data.calculated[key];
+			}
+			data.pie.values = Object.keys(data.calculated).map(function(name) {
+				return {
+					label: name,
+					count: +data.calculated[name],
+					percentage: d3.round( (+data.calculated[name])/data.pie.total*100, 1 )
+				};
+			});
 
-			svg.selectAll(".donut-arc")
-			  .data(function(d) { return pie(d.values); })
-			.enter().append("path")
-			  .attr("title", function(d) { return "<center>"+lng[d.data.name]+"<br>"+d.data.perc+"<br/>"+d.data["population"]+"/"+d.data["total"]+"</center>"; })
-			  .attr("class", function(d) { return "tip donut-arc donut-"+d.data.name; })
-			  .attr("d", arc);
+			/* Arcs and Donuts/Pies */
+			var arc = d3.svg.arc()
+				.outerRadius(opts.radius)
+				.innerRadius(opts.pie? 0: opts.innerRadius);
 
-			svg.append("text")
-			  .attr("dy", ".35em")
-			  .attr("class", "donut-center-text tip")
-			  .attr("title", function(d) { return d.description; })
-			  .style("text-anchor", "middle")
-			  .text(function(d) { return d.text; });
+			var pie = d3.layout.pie()
+				.sort(null)
+				.value(function(d) { return d.count; });
+
+			var donut = svg.append("g")
+				.attr("class", "donut")
+				.attr("transform", "translate(" + (width/2) + "," + (height/2+(opts.title!=false?30/2:0)) + ")");
+
+			var segment = donut.selectAll(".arc")
+				  .data(pie(data.pie.values))
+				.enter().append("g");
+			segment.append("path")
+				.attr("title", function(d) { return "<center>"+lng[d.data.label]+"<br>"+d.data.percentage+"%<br/>"+d.data.count+"/"+data.pie.total+"</center>"; })
+				.attr("class", function(d) { return "tip donut-arc donut-"+d.data.label; })
+				.attr("d", arc);
 
 			$(".tip").qtip({
 				style: "qtip-tipsy",
@@ -878,8 +856,31 @@
 				  adjust: { x: 15, y: 15 }
 				}
 			});
-		}
 
+			/* Legend */
+			if(opts.legend!=false) {
+				var legendSelector = opts.legendSelector || selector;
+				var legend = d3.select(legendSelector).append("svg")
+				  .attr("class", "legend-text")
+				  .attr("width", 150)
+				  .attr("height", height)
+					.selectAll("g")
+					  .data(data.pie.values)
+					.enter().append("g")
+					  .attr("transform", function(d, i) { return "translate("+(0)+"," + i * 20 + ")"; });
+
+				  legend.append("rect")
+				      .attr("width", 12)
+				      .attr("height", 12)
+				      .attr("class", function(d) { return "donut-"+d.label; });
+
+				  legend.append("text")
+				      .attr("x", 16)
+				      .attr("y", 6)
+				      .attr("dy", ".35em")
+				      .text( function(d) { return lng[d.label]; });
+			}
+		}
 	});
 
 	var multipleDonutsVisualization = Visualization.extend({

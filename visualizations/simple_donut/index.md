@@ -4,20 +4,36 @@ path: simple_donut
 title: Simple Donut
 description: This visualization provides a simple, all purpose, single donut.
 call: showDonut
-call_args: ""
-sample_call: SViz.loadViz("showDonut", "data.json", "#visualization");
+call_args: ", {title:false}"
+sample_call: SViz.loadViz("showDonut", "data.json", "#visualization", {title:false});
 opts:
   - - width
-    - the wrapping container width
-    - the width to be forced to the visualization.
+    - 150
+    - total width, including margins
 
   - - height
-    - the default aspect ratio computed with either the provided width or height
-    - the height to be forced to the visualization.
+    - 150
+    - total height, including margins
 
-  - - showLegend
+  - - radius
+    - square fit of the container
+    - the radius of the donut
+
+  - - innerRadius
+    - less 20 than the radius
+    - radius of the donut's hole. Set to 0 to make a pie
+
+  - - title
     - true
-    - displays legend
+    - show title
+
+  - - titleclass
+    - h4
+    - css class for the title
+
+  - - legend
+    - true
+    - show legend
 
   - - legendSelector
     - the original selector
@@ -25,17 +41,11 @@ opts:
 ---
 
 {% highlight json %}
-{ "minGrade": 0,
-  "maxGrade": 20,
-  "minRequiredGrade": 9,
-  "notAttended": "NA",
-  "students": [
-  { "grade": 9.50  },
-  { "grade": 7.55  },
-  { "grade": 6.78  },
-  { "grade": "NA"  },
-  { "grade": 4.58  },
-  { "grade": 4.93  },
- ...
- ]}
+{ "calculated": {
+    "cat1": 74,
+    "cat2": 34,
+    "cat3": 21
+    ...
+  }
+}
 {% endhighlight %}

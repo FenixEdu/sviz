@@ -57,6 +57,8 @@
   },
   "simple-donut": {
     "title": "Título",
-    "legend": "Legenda"
+    "cat1": "Não Avaliados",
+    "cat2": "Reprovados",
+    "cat3": "Aprovados"
   }
 }

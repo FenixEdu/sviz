@@ -1,33 +1,8 @@
 {
-	"domain": ["positive-grades", "negative-grades", "not-evaluated-grades"],
-	"entries": [
-	{
-		"text": "IP",
-		"description": "Introduction to Programming",
-		"positive-grades": 74,
-		"negative-grades": 34,
-		"not-evaluated-grades": 21
-	},
-	{ 
-		"text": "OOP",
-		"description": "Object Oriented Programming",
-		"positive-grades": 534,
-		"negative-grades": 234,
-		"not-evaluated-grades": 21
-	},
-	{
-		"text": "DS",
-		"description": "Digital Systems",
-		"positive-grades": 228,
-		"negative-grades": 133,
-		"total": 361,
-		"not-evaluated-grades": 21
-	},
-	{
-		"text": "DM",
-		"description": "Discrete Mathematics",
-		"positive-grades": 22,
-		"negative-grades": 133,
-		"not-evaluated-grades": 21
-	}]
+	"calculated": {
+		"cat1": 74,
+		"cat2": 34,
+		"cat3": 21
+	}
+
 }
